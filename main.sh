@@ -44,7 +44,7 @@ function spawnClient(){
 function spawnEVS(){
 	# Spawns an EVS process. Arguments: none
 	cd "$EVS_DIR"
-	./main.py > "$EVS_LOG" &
+	./main.py "$1" > "$EVS_LOG" &
 	EVS_PID=$!
 	cd "$CURDIR"
 #	echo Spawned a server process, PID $EVS_PID
@@ -62,11 +62,11 @@ function waitForPID(){
 
 echo -n "force_gain: ${1} sensor_gain: ${2}" >> $RESULTS
 spawnClient "-DFORCE_GAIN=${1}f -DSENSOR_GAIN=${2}f"
-for i in `seq 1 3`; do
-	spawnEVS
+for i in 7881 1543 106 4899 8591 6604 4356 4775 7870 7317; do
+	spawnEVS $i
 	waitForPID $EVS_PID
 	echo -n " " >> $RESULTS
-	echo -n run${i}: `tail -1 "$EVS_RESULTS" | cut -d " " -f 2-` >> $RESULTS
+	echo -n seed${i}: `tail -1 "$EVS_RESULTS" | cut -d " " -f 2-` >> $RESULTS
 done
 kill $CLIENT_PID
 echo >> $RESULTS

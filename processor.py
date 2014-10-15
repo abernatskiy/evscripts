@@ -59,7 +59,7 @@ class Record(object):
 	def __str__(self):
 		return 'forceGain: ' + str(self.forceGain) + ' sensorGain: ' + str(self.sensorGain) + ' noOfRuns: ' + str(len(self.runs))
 	def avgFitness(self):
-		fitnesses = np.array([ run.bestFitness for run in self.runs ])
+		fitnesses = np.array([ run.bestFitness for run in self.runs ])/self.sensorGain
 		return fitnesses.mean()
 	def relStdOfFitness(self):
 		fitnesses = np.array([ run.bestFitness for run in self.runs ])
@@ -97,7 +97,7 @@ def getField(funcName):
 
 attributes = {'avgFitness', 'relStdOfFitness', 'avgNoOfConnections', 'avgNoOfExitatoryConnections', 'avgNoOfInhibitoryConnections', 'symmetricity', 'diversity', 'modularity' }
 
-plotOptions = { 'avgFitness' 					: {'zscale' : 'log', 'zlabel' : 'Average fitness, log10 of' },
+plotOptions = { 'avgFitness' 					: {'zscale' : 'log', 'zlabel' : 'Average fitness, s/m^2, log10 of' },
 								'relStdOfFitness'			: {'zscale' : 'lin', 'zlabel' : 'Relative standard deviation of fitness' },
 								'avgNoOfConnections'	: {'zscale' : 'lin', 'zlabel' : 'Average no of connections' },
 								'symmetricity'				: {'zscale' : 'lin', 'zlabel' : 'Fraction of symmetrical networks' },
@@ -109,9 +109,9 @@ def plotField(funcName):
 	import matplotlib.pyplot as plt
 	field = getField(funcName)
 	plt.xscale('log')
-	plt.xlabel('forceGain')
+	plt.xlabel('forceGain, N')
 	plt.yscale('log')
-	plt.ylabel('sensorGain')
+	plt.ylabel('sensorGain, m^2')
 	if plotOptions[funcName]['zscale'] == 'log':
 		plt.scatter(field[:,0], field[:,1], c=np.log10(field[:,2]), marker='s', s=440)
 	else:
