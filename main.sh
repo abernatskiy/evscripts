@@ -1,10 +1,9 @@
 #!/bin/bash
 
-#CLIENT_DIR=$HOME/bullet3-Bullet-2.83-alpha/Demos/Box2dDemo
-CLIENT_DIR=$HOME/braitenberg/bullet-2.82-r2704/Demos/Box2dDemo
+source vars
+
 CLIENT_MAIN=$TADROSIM_DIR/tadrosim
 
-EVS_DIR=$HOME/evs
 EVS_MAIN=$EVS_DIR/main.py
 EVS_PIPE_INDIV=$EVS_DIR/individuals.pipe
 EVS_PIPE_EVALS=$EVS_DIR/evaluations.pipe
