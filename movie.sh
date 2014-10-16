@@ -8,13 +8,21 @@
 # width/2, height/2, then cd to build3/gmake
 # (assuming you use bullet3) and rebuild the library
 
+if [ $# -lt 7 ]; then
+	echo Not enough arguments
+	exit 1
+elif [ $# -gt 7 ]; then
+	echo Too many arguments
+	exit 1
+fi
+
 source vars
 
 CLIENT_MAIN=$CLIENT_DIR/tadrosim-graphics
-CLIENT_MAKE_LOG="client_make.log"
-CLIENT_LOG="client.log"
 
 CURDIR="`pwd`"
+CLIENT_MAKE_LOG=$CURDIR/client_make.log
+CLIENT_LOG=$CURDIR/client.log
 
 function spawnGraphicalClient(){
 	# Spawns a client process. Arguments:
@@ -47,17 +55,12 @@ echo sending `echo $@ | cut -d' ' -f3-` to in
 echo $@ | cut -d' ' -f3- > $CLIENT_DIR/in
 sleep 1
 CLIENT_WINDOWID=`wmctrl -l | grep "Bullet Physics Demo. http:\/\/bulletphysics.com" | cut -d' ' -f1`
-recordmydesktop --windowid $CLIENT_WINDOWID --no-sound &
+recordmydesktop --windowid $CLIENT_WINDOWID --no-sound --overwrite -o fg${1}sg${2}nw`echo $@ | cut -d' ' -f4- | sed -e 's/ //g'`.ogv &
 RMD_PID=$!
 
-echo Im here
-
 cat $CLIENT_DIR/out &
+echo CRASHLANDING > $CLIENT_DIR/in &
 
-sleep 5
-
-echo $CLIENT_PID $RMD_PID
-
-kill $CLIENT_PID
+waitForPID $CLIENT_PID
 
 kill $RMD_PID
