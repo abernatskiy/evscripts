@@ -34,6 +34,8 @@ function spawnGraphicalClientWScreenshots(){
 		exit 1
 	elif [ "`mount | grep screenshots`" = "" ]; then
 		echo Mount the damn ramfs\! 5G are required
+		echo The command is
+		echo mount -t tmpfs -o size=5G none $CLIENT_DIR/screenshots
 		exit 1
 	fi
   make clean > "$CLIENT_MAKE_LOG" 2>&1
