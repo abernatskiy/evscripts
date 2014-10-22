@@ -18,8 +18,8 @@ G.add_nodes_from(['in0','in1','out0','out1'])
 
 pos = {'in0':(0,1),
        'in1':(1,1),
-       'out0':(0,0),
-       'out1':(1,0)}
+       'out0':(1,0),
+       'out1':(0,0)}
 
 G.add_edge('in0', 'out0', weight=weights[0])
 G.add_edge('in0', 'out1', weight=weights[1])
@@ -36,4 +36,3 @@ nx.draw_networkx_labels(G,pos,font_size=20,font_family='sans-serif')
 
 plt.axis('off')
 plt.savefig(reduce(lambda x,y: x+y, sys.argv[1:]) + '.png')
-plt.show()

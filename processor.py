@@ -113,9 +113,9 @@ def plotField(funcName):
 	plt.yscale('log')
 	plt.ylabel('sensorGain, m^2')
 	if plotOptions[funcName]['zscale'] == 'log':
-		plt.scatter(field[:,0], field[:,1], c=np.log10(field[:,2]), marker='s', s=440)
+		plt.scatter(field[:,0], field[:,1], c=np.log10(field[:,2]), marker='s', s=110)
 	else:
-		plt.scatter(field[:,0], field[:,1], c=field[:,2], marker='s', s=440)
+		plt.scatter(field[:,0], field[:,1], c=field[:,2], marker='s', s=110)
 	plt.colorbar().set_label(plotOptions[funcName]['zlabel'])
 	plt.savefig(funcName + '.png')
 	plt.clf()
