@@ -8,12 +8,12 @@ from math import pow
 
 forceGain = 8.0
 sensorGain = 2.0
-randomSeedsFile = 'randints1416376705.dat'
+randomSeedsFile = 'randints1416507058.dat'
 
 connectionCost = 0.0
 print('Investigating the case of forceGain ' + str(forceGain) + ', sensorGain ' + str(sensorGain) + ', connection cost ' + str(connectionCost))
 call(['./getFitnessTimeSeriesForParams.sh', str(forceGain), str(sensorGain), str(connectionCost), randomSeedsFile])
 
-for connectionCost in [pow(2.0, x) for x in range(4, 16)]:
+for connectionCost in [pow(2.0, x) for x in range(15, 16)]:
 	print('Investigating the case of forceGain ' + str(forceGain) + ', sensorGain ' + str(sensorGain) + ', connection cost ' + str(connectionCost))
 	call(['./getFitnessTimeSeriesForParams.sh', str(forceGain), str(sensorGain), str(connectionCost), randomSeedsFile])

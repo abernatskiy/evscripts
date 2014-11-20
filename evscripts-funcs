@@ -43,7 +43,7 @@ function spawnClient(){
 function spawnEVS(){
 	# Spawns an EVS process. Arguments: none
 	cd "$EVS_DIR"
-	./main.py "$1" > "$EVS_LOG" &
+	./main.py $@ > "$EVS_LOG" &
 	EVS_PID=$!
 	cd "$CURDIR"
 #	echo Spawned a server process, PID $EVS_PID
