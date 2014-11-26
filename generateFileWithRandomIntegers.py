@@ -29,3 +29,5 @@ filename = 'randints' + str(t) + '.dat'
 arr = np.arange(upperLimit)
 np.random.shuffle(arr)
 np.savetxt(filename, arr[:howMany], fmt='%u')
+
+print('Wrote file ' + filename)

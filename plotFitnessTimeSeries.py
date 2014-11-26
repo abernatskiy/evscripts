@@ -2,8 +2,10 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import fnmatch
 
-def plotFitnessTS(filename, plotColor):
+def plotFitnessTS(filename, plotColor, plotStd=True):
 	fitnessTS = np.loadtxt(filename)
 	fitnessMeanTS = np.mean(fitnessTS, axis=0)
 	fitnessStdTS = np.std(fitnessTS, axis=0)
@@ -16,22 +18,21 @@ def plotFitnessTS(filename, plotColor):
 	plt.xlabel('Generations')
 	plt.ylabel('Fitness')
 
-	plt.plot(gens, fitnessLower, gens, fitnessUpper, color=plotColor, alpha=0.5)
-	plt.fill_between(gens, fitnessLower, fitnessUpper, where=fitnessUpper>=fitnessLower, facecolor=plotColor, alpha=0.3, interpolate=True)
-	plt.plot(gens, fitnessMeanTS, color=plotColor)
+	if plotStd:
+		plt.plot(gens, fitnessLower, gens, fitnessUpper, color=plotColor, alpha=0.5)
+		plt.fill_between(gens, fitnessLower, fitnessUpper, where=fitnessUpper>=fitnessLower, facecolor=plotColor, alpha=0.3, interpolate=True)
+	plt.plot(gens, fitnessMeanTS, color=plotColor, label=filename)
 
 #plotFitnessTS('fg16.0sg4.0cc0.0_fitnessTimeSeries.dat', 'red')
 
-files1k = [ 'fg8.0sg2.0cc32768.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc16384.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc8192.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc4096.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc2048.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc1024.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc512.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc256.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc128.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc64.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc32.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc16.0_fitnessTimeSeries.dat', \
-          'fg8.0sg2.0cc0.0_fitnessTimeSeries.dat' ]
+colors = ['red', 'yellow', 'green', 'cyan', 'blue', 'violet']
+colorIdx = 0
+
+for file in os.listdir('.'):
+	if fnmatch.fnmatch(file, 'fg16.0sg*cc*_fitnessTimeSeries.dat'):
+		plotFitnessTS(file, colors[colorIdx], plotStd=False)
+#		plotFitnessTS(file, colors[colorIdx])
+		colorIdx = (colorIdx + 1) % 6
+
+plt.legend(loc=4)
+plt.show()
