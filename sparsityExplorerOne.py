@@ -10,13 +10,13 @@ oneTrueSeed = seeds[int(sys.argv[1])]
 
 evalPipeName = '/tmp/evaluations' + str(oneTrueSeed) + '.log'
 indivPipeName = '/tmp/individuals' + str(oneTrueSeed) + '.log'
-call(['/usr/bin/mkfifo', evalPipeName])
-call(['/usr/bin/mkfifo', indivPipeName])
+subprocess.call(['/usr/bin/mkfifo', evalPipeName])
+subprocess.call(['/usr/bin/mkfifo', indivPipeName])
 
 client = subprocess.Popen([home + 'anaconda/bin/python2.7', home + 'eswclient/runEvaluator.py', indivPipeName, evalPipeName])
-call([home + 'anaconda/bin/python2.7', home + 'evs/main.py', evalPipeName, indivPipeName, str(oneTrueSeed)])
+subprocess.call([home + 'anaconda/bin/python2.7', home + 'evs/main.py', evalPipeName, indivPipeName, str(oneTrueSeed)])
 
 client.send_signal(subprocess.signal.SIGTERM)
 
-call(['/bin/rm', evalPipeName])
-call(['/bin/rm', indivPipeName])
+subprocess.call(['/bin/rm', evalPipeName])
+subprocess.call(['/bin/rm', indivPipeName])
