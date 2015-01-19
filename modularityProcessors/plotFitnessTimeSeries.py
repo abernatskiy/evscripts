@@ -8,7 +8,7 @@ import fnmatch
 def plotFitnessTS(filename, plotColor, plotStd=True):
 	fitnessTS = np.loadtxt(filename)
 	fitnessMeanTS = np.mean(fitnessTS, axis=1)
-	fitnessStdTS = np.std(fitnessTS, axis=1)/np.sqrt(float(fitnessTS.shape[1]))
+	fitnessStdTS = np.std(fitnessTS, axis=1)*1.96/np.sqrt(float(fitnessTS.shape[1]))
 
 	fitnessLower = fitnessMeanTS - fitnessStdTS
 	fitnessUpper = fitnessMeanTS + fitnessStdTS
