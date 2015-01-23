@@ -6,4 +6,4 @@
 
 cd $PBS_O_WORKDIR
 echo "This is myjob running on " `hostname`
-/users/a/b/abernats/anaconda/bin/python2.7 /users/a/b/abernats/evscripts/sparsityExplorerOne.py $PBS_ARRAYID
+/users/a/b/abernats/anaconda/bin/python2.7 /users/a/b/abernats/evscripts/sparsityExplorerOne.py $PBS_ARRAYID config.ini
