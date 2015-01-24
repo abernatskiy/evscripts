@@ -15,7 +15,7 @@ subprocess.call(['/usr/bin/mkfifo', evalPipeName])
 subprocess.call(['/usr/bin/mkfifo', indivPipeName])
 
 client = subprocess.Popen([home + '/anaconda/bin/python2.7', home + '/eswclient/runEvaluator.py', indivPipeName, evalPipeName])
-subprocess.call([home + '/anaconda/bin/python2.7', home + '/evs/main.py', evalPipeName, indivPipeName, str(oneTrueSeed), sys.argv[2]])
+subprocess.call([home + '/anaconda/bin/python2.7', home + '/evs/mainConfig.py', evalPipeName, indivPipeName, str(oneTrueSeed), sys.argv[2]])
 
 client.send_signal(subprocess.signal.SIGTERM)
 
