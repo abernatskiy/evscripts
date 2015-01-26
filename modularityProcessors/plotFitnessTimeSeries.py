@@ -25,14 +25,15 @@ def plotFitnessTS(filename, plotColor, plotStd=True):
 
 #plotFitnessTS('fg16.0sg4.0cc0.0_fitnessTimeSeries.dat', 'red')
 
-colors = ['red', 'yellow', 'green', 'cyan', 'blue', 'violet']
+colors = ['red', 'green', 'cyan', 'blue', 'violet']
 colorIdx = 0
 
-for file in os.listdir('.'):
-	if fnmatch.fnmatch(file, '*.dat'):
-		plotFitnessTS(file, colors[colorIdx], plotStd=True)
-#		plotFitnessTS(file, colors[colorIdx])
-		colorIdx = (colorIdx + 1) % 6
+for file in ['random_expl0.5_insdel0.9.qvalue', 'random_expl0.5_insdel2.0.qvalue', 'sparse_expl0.5_insdel0.9.qvalue', 'sparse_expl0.5_insdel2.0.qvalue', 'sparse_expl0.5_insdel0.9_newchange.qvalue']:
+	plotFitnessTS(file, colors[colorIdx], plotStd=True)
+#	plotFitnessTS(file, colors[colorIdx])
+	colorIdx = (colorIdx + 1) % 5
 
-plt.legend(loc=4)
-plt.show()
+plt.legend(loc=1)
+plt.title('Q vs time')
+plt.xlim(0,100)
+#plt.show()
