@@ -20,7 +20,7 @@ subprocess.call(['/usr/bin/mkfifo', indivPipeName])
 
 client = subprocess.Popen([home + '/anaconda/bin/python2.7', home + '/eswclient/runEvaluator.py', indivPipeName, evalPipeName])
 
-os.chdir(dir)
+os.chdir(oneTrueDir)
 subprocess.call([home + '/anaconda/bin/python2.7', home + '/evs/mainConfig.py', evalPipeName, indivPipeName, str(oneTrueSeed), sys.argv[2]])
 subprocess.call(['/bin/bash', home + '/evscripts/modularityProcessors/computePrefixQ.sh', 'seed' + str(oneTrueSeed)])
 os.chdir('..')
