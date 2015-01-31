@@ -1,6 +1,10 @@
 #!/usr/bin/python2
 
-xlimit = 20
+import sys
+if len(sys.argv) == 2:
+	xlimit = int(sys.argv[1])
+else:
+	xlimit = 100
 
 import numpy as np
 import matplotlib.pyplot as plt
