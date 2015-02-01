@@ -12,8 +12,8 @@ for line in file:
 	seeds.append(int(line))
 oneTrueSeed = seeds[int(sys.argv[1])]
 
-evalPipeName = '/tmp/evaluations' + str(oneTrueSeed) + '.pipe'
-indivPipeName = '/tmp/individuals' + str(oneTrueSeed) + '.pipe'
+evalPipeName = '/tmp/evaluations' + str(oneTrueSeed) + '_pid' + str(os.getpid()) + '.pipe'
+indivPipeName = '/tmp/individuals' + str(oneTrueSeed) + '_pid' + str(os.getpid()) + '.pipe'
 subprocess.call(['/usr/bin/mkfifo', evalPipeName])
 subprocess.call(['/usr/bin/mkfifo', indivPipeName])
 
