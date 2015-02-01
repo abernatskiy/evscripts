@@ -7,8 +7,8 @@ CURDIR=`pwd`
 WORKDIR="${HOME}/findcommunities/"
 QCOMPUTER="${WORKDIR}massQ.sh"
 
-TXTPIPE="/tmp/txt_${1}"
-BINPIPE="/tmp/bin_${1}"
+TXTPIPE="/tmp/txt_${1}_${BASHPID}"
+BINPIPE="/tmp/bin_${1}_${BASHPID}"
 
 mkfifo "$TXTPIPE"
 mkfifo "$BINPIPE"
