@@ -11,5 +11,11 @@ def readFitnessIncrements(files):
 	fitness = [ _extractFitness(file) for file in files ]
 	return (fitness[1] - fitness[0])/fitness[0]
 
-#files = ['population236_gen0.log', 'population236_gen1.log']
-#fitInc = readFitnessIncrements(files)
+if __name__ == '__main__':
+	import sys
+	files = [sys.argv[1], sys.argv[2]]
+	fitInc = readFitnessIncrements(files)
+	evSamp = len(fitInc)
+	evMean = np.mean(fitInc)
+	evStdE = np.std(fitInc)/np.sqrt(evSamp)
+	print('Evolvability: mean ' + str(evMean) + ', standard error ' + str(evStdE) + ', as measured using ' + str(evSamp) + ' samples')
