@@ -45,8 +45,10 @@ class RegularGrid(Grid):
 			if gridType == 'lin':
 				getVal = lambda i: referenceValue + float(i)*modifier
 			elif gridType == 'log':
-				getVal = lambda i: referenceValue * modifier**i
+				getVal = lambda i: referenceValue * (modifier**(i+1))
 			else:
 				raise ValueError('Second field of the parameter grid description must be either \'lin\' or \'log\'')
-			paramsRanges.append([ getVal(i) for i in xrange(downSteps, upSteps+1) ])
+			print 'Paramname ' + paramName
+			print 'Range ' + str([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
+			paramsRanges.append([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
 		super(RegularGrid, self).__init__(paramsNames, paramsRanges)
