@@ -1,7 +1,17 @@
 import itertools
 
 class Grid(object):
+	'''Class which allows iteration over arbitrarily dimensional parameter grids.
+     The set of grid points is defined to be a direct product of 1d grids for
+     individual parameters. Iteration over an object of this class yields
+     parameter disctionaries.
+	'''
 	def __init__(self, paramsNames, paramsRanges):
+		'''Arguments:
+         paramsNames - a list of the string names of the parameters
+         paramsRanges - a list of iterables representing one-dimensional
+          grids of individual parameters
+    '''
 		if len(paramsNames) == len(paramsRanges):
 			self.dim = len(paramsNames)
 		else:
@@ -22,7 +32,7 @@ class Grid(object):
 	def __getitem__(self, j):
 		return {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
 
-class RegularGrid(Grid):
+class LogLinGrid(Grid):
 	def __init__(self, paramsDescriptions):
 		'''Descriptions must be an iterable yielding tuples of the following form:
          (paramName, gridType, referenceValue, modifier, downSteps, upSteps)
@@ -51,4 +61,4 @@ class RegularGrid(Grid):
 			print 'Paramname ' + paramName
 			print 'Range ' + str([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
 			paramsRanges.append([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
-		super(RegularGrid, self).__init__(paramsNames, paramsRanges)
+		super(LogLinGrid, self).__init__(paramsNames, paramsRanges)
