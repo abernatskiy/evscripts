@@ -97,12 +97,16 @@ class Experiment(object):
 			return (len(self.grid)+self.pointsPerJob-1) / self.pointsPerJob
 
 	def _submitJobs(self, beginID, endID):
-#		print subprocess.list2cmdline([pbsEnv.qsub,
 		subprocess.check_call([pbsEnv.qsub,
 			'-q', self.queue,
 			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-t', str(beginID) + '-' + str(endID),
-			'-v', 'PYTHON=' + sys.executable + ',PYTHON_HELPER=' + str(routes.pbsPythonHelper) + ',GRID=' + self._getGridString(),
+			'-v', 'PYTHON=' + sys.executable +
+           ',PYTHON_HELPER=' + str(routes.pbsPythonHelper) +
+           ',EVSCRIPTS_HOME=' + routes.evscriptsHome +
+           ',CONDITIONS=' + self._getConditionsString() +
+           ',GRID=' + self._getGridString() +
+           ',POINTS_PER_JOB=' + str(self.pointsPerJob),
 			routes.pbsBashHelper])
 
 	def _getGridString(self):
@@ -110,6 +114,12 @@ class Experiment(object):
 			return 'None'
 		else:
 			return self.grid.toCompactString()
+
+	def _getConditionsString(self):
+		def dictionary2csl(dictionary):
+			return ','.join(map(lambda (x, y): x + ',' + str(y), dictionary.items()))
+		condStrings = [ dictionary2csl(dict) for dict in self.experimentalConditions ]
+		return ';'.join(condStrings)
 
 	def _waitForCompletion(self):
 		pass
