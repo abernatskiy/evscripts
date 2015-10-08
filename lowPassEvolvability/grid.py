@@ -32,6 +32,12 @@ class Grid(object):
 	def __getitem__(self, j):
 		return {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
 
+	def toCompactString(self):
+		return 'unrepr'
+
+	def fromCompactString(self, string):
+		pass
+
 class LogLinGrid(Grid):
 	def __init__(self, paramsDescriptions):
 		'''Descriptions must be an iterable yielding tuples of the following form:

@@ -49,8 +49,8 @@ class Experiment(object):
 		self.experimentalConditions = experimentalConditions
 		self.grid = grid
 		self.pointsPerJob = pointsPerJob
-		self.queue = queue
-		self.expectedWallClockTime = expectedWallClockTime
+		self.queue = pbsEnv.defaultQueue if queue is None else queue
+		self.expectedWallClockTime = pbsEnv.queueLims[self.queue] if expectedWallClockTime is None else expectedWallClockTime
 
 	def run(self):
 		self._prepareEnv()
@@ -61,8 +61,11 @@ class Experiment(object):
 	def _prepareEnv(self):
 		self._makeDir()
 		os.chdir(self.name)
-		noteFile = open('notes.txt', 'w')
-		noteFile.write('Experiment ' + self.name + ' initiated at ' + self._dateTime() + '\n')
+		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
+
+	def _makeNote(self, line):
+		noteFile = open('notes.txt', 'a')
+		noteFile.write(line + '\n')
 		noteFile.close()
 
 	def _makeDir(self):
@@ -93,7 +96,18 @@ class Experiment(object):
 			return (len(self.grid)+self.pointsPerJob-1) / self.pointsPerJob
 
 	def _submitJobs(self, beginID, endID):
-		pass
+		subprocess.check_call([pbsEnv.qsub,
+			'-q', self.queue,
+			'-l', self.expectedWallClockTime,
+			'-t', str(beginID) + '-' + str(endID),
+			'-v', 'PYTHON=' + sys.executable + ',PYTHON_HELPER=' + str(routes.pbsPythonHelper) + ',GRID=' + self._getGridString(),
+			routes.pbsBashHelper])
+
+	def _getGridString(self):
+		if self.grid is None:
+			return '\"NoGrid\"'
+		else:
+			return self.grid.toCompactString()
 
 	def _waitForCompletion(self):
 		pass
