@@ -17,7 +17,8 @@ class Grid(object):
 		else:
 			raise ValueError('Parameter names and ranges lists are out of alignment')
 		self.paramsNames = paramsNames
-		self.gridvals = list(itertools.product(*paramsRanges))
+		self.paramsRanges = list(map(lambda x: list(map(float, x)), paramsRanges)) # every value in rangers is forcibly converted to float
+		self.gridvals = list(itertools.product(*self.paramsRanges))
 
 	def __repr__(self):
 		return repr(list(self))
@@ -33,10 +34,20 @@ class Grid(object):
 		return {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
 
 	def toCompactString(self):
-		return 'unrepr'
+		def iterable2csl(iterable):
+			return ','.join(map(str, iterable))
+		namedRanges = [ self.paramsNames[i] + ',' + iterable2csl(self.paramsRanges[i]) for i in xrange(self.dim) ]
+		return ';'.join(namedRanges)
 
 	def fromCompactString(self, string):
-		pass
+		self.paramsNames = []
+		self.paramsRanges = []
+		parsedStrings = map(lambda x: x.split(','), string.split(';'))
+		for namedRangeList in parsedStrings:
+			self.paramsNames.append(namedRangeList[0])
+			self.paramsRanges.append(list(map(float, namedRangeList[1:])))
+		self.dim = len(self.paramsNames)
+		self.gridvals = list(itertools.product(*self.paramsRanges))
 
 class LogLinGrid(Grid):
 	def __init__(self, paramsDescriptions):
