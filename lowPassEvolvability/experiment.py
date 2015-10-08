@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import subprocess
 import imp
@@ -96,16 +97,17 @@ class Experiment(object):
 			return (len(self.grid)+self.pointsPerJob-1) / self.pointsPerJob
 
 	def _submitJobs(self, beginID, endID):
+#		print subprocess.list2cmdline([pbsEnv.qsub,
 		subprocess.check_call([pbsEnv.qsub,
 			'-q', self.queue,
-			'-l', self.expectedWallClockTime,
+			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-t', str(beginID) + '-' + str(endID),
 			'-v', 'PYTHON=' + sys.executable + ',PYTHON_HELPER=' + str(routes.pbsPythonHelper) + ',GRID=' + self._getGridString(),
 			routes.pbsBashHelper])
 
 	def _getGridString(self):
 		if self.grid is None:
-			return '\"NoGrid\"'
+			return 'None'
 		else:
 			return self.grid.toCompactString()
 
