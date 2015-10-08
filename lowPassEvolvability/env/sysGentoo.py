@@ -2,4 +2,3 @@
 # System binaries on Gentoo
 
 date = '/bin/date'
-mkdir = '/bin/mkdir'

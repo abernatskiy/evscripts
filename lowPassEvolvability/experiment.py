@@ -1,3 +1,5 @@
+import os
+import shutil
 import subprocess
 import imp
 
@@ -14,7 +16,8 @@ class Experiment(object):
 	'''
 	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None):
 		'''Arguments:
-       name is the name of the experiment
+       name is the name of the experiment AND of its
+         working directory.
        experimentalConditions is a list of dictionaries
          describing parameters for different experimental
          groups. The number of experimental groups is
@@ -56,14 +59,29 @@ class Experiment(object):
 		self._processResults()
 
 	def _prepareEnv(self):
-		self._prepareDir()
+		self._makeDir()
+		os.chdir(self.name)
 		noteFile = open('notes.txt', 'w')
 		noteFile.write('Experiment ' + self.name + ' initiated at ' + self._dateTime() + '\n')
 		noteFile.close()
 
-	def _prepareDir(self):
-#		try:
-		subprocess.call([sysEnv.mkdir, self.name])
+	def _makeDir(self):
+		'''Creates a working directory named after the experiment in the current directory'''
+		if os.path.isdir(self.name):
+			print('Working directory exists, trying to back it up and create a new one...')
+			for i in xrange(10):
+				curCandidateDir = self.name + '.save' + str(i)
+				if not os.path.isdir(curCandidateDir):
+					break
+				else:
+					curCandidateDir = None
+			if curCandidateDir is None:
+				raise OSError('Too many backup directories (no less than ten). Go clean them up.')
+			else:
+				shutil.move(self.name, curCandidateDir)
+		elif os.path.exists(self.name):
+			raise OSError('Working directory path exists, but is not a directory. Go fix it.')
+		os.makedirs(self.name)
 
 	def _dateTime(self):
 		return subprocess.check_output([sysEnv.date])[:-1]
