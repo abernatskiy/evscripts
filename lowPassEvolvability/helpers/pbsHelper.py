@@ -3,6 +3,7 @@
 import sys
 import os
 from time import sleep
+from copy import copy
 import imp
 
 class Helper:
@@ -18,10 +19,22 @@ class Helper:
 		self.evscriptsHome = argv[1]
 		self._getGridPoints(argv[4], int(argv[5]), int(argv[2]))
 		self._getConditionsFromString(argv[3])
+		self.rootDir = os.getcwd()
+
+	def __repr__(self):
+		return( 'Helper: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
+						'        gridPoints = ' + str(self.gridPoints) + '\n' +
+						'        experimentalConditions = ' + str(self.experimentalConditions) + '\n' +
+						'        rootDir = ' + self.rootDir + '\n' )
+
+	def __str__(self):
+		return repr(self)
 
 	def _getGridPoints(self, gridString, pointsPerJob, jobID):
 		self.gridPoints = []
-		if gridString != 'None':
+		if gridString == 'None':
+			self.gridPoints.append({})
+		else:
 			grid = imp.load_source('grid', os.path.join(self.evscriptsHome + 'grid.py'))
 			globalGrid = grid.Grid([], [])
 			globalGrid.fromCompactString(gridString)
@@ -37,18 +50,41 @@ class Helper:
 			return dict(zip(keys, vals))
 		self.experimentalConditions = list(map(dictFromStrList, dictStrings))
 
+	def runExperiments(self):
+		def dict2dirName(dict):
+			return '_'.join(map(lambda (x, y): x + str(y), dictionary.items()))
+		for gridPoint in self.gridPoints:
+			gpDirName = dict2dirName(gridPoint)
+			os.makedirs(gpDirName)
+			os.chdir(gpDirName)
+
+			for condition in self.experimentalConditions:
+				condDirName = dict2dirName(condition)
+				os.makedirs(condDirName)
+				os.chdir(condDirName)
+
+				fullCond = copy(condition)
+				fullCond.update(gridPoint)
+				self._runGroup(fullCond)
+
+				os.chdir('..')
+
+			os.chdir('..')
+
+	def _runGroup(self, fcond):
+		f = open('groupnotes.txt', 'w')
+		f.write(str(fcond))
+		f.close()
+
 if __name__ == '__main__':
 	os.makedirs('fgsfds')
 	os.chdir('fgsfds')
-	f = open('helpernotes.log', 'w')
+	f = open('helpernotes.txt', 'w')
 	f.write('Arguments: ' + str(sys.argv) + '\n')
 	f.write('Attempting to create Helper...\n')
 	f.flush()
 	h = Helper(sys.argv)
-	f.write('evscriptsHome = ' + str(h.evscriptsHome) + '\n')
-	f.flush()
-	f.write('gridPoints = ' + str(h.gridPoints) + '\n')
-	f.flush()
-	f.write('experimentalConditions = ' + str(h.experimentalConditions) + '\n')
+	f.write(str(h))
 	f.close()
+	h.runExperiments()
 	print('DONE')
