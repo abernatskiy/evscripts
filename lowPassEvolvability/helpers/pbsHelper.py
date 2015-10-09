@@ -28,23 +28,27 @@ class Helper:
 			curGridPointID = jobID*pointsPerJob
 			for i in xrange(pointsPerJob):
 				self.gridPoints.append(globalGrid[curGridPointID + i])
+
 	def _getConditionsFromString(self, conditionsString)
 		dictStrings = map(lambda x: x.split(','), conditionsString.split(';'))
 		def dictFromStrList(list):
 			keys = list[0::2]
 			vals = map(float, list[1::2])
 			return dict(zip(keys, vals))
-		return list(map(dictFromStrList, dictStrings))
+		self.experimentalConditions = list(map(dictFromStrList, dictStrings))
 
 if __name__ == '__main__':
-# h = Helper(sys.argv[1:])
 	os.makedirs('fgsfds')
 	os.chdir('fgsfds')
-	f = open('dfgdfg', 'w')
-	f.write('test1\n')
-	for arg in sys.argv:
-		f.write(arg + '\n')
-	sleep(60*10)
-	f.write('test2\n')
+	f = open('helpernotes.log', 'w')
+	f.write('Arguments:' + str(sys.argv) + '\n')
+	f.write('Attempting to create Helper...\n')
+	f.flush()
+	h = Helper(sys.argv)
+	f.write('evscriptsHome = ' + str(h.evscriptsHome))
+	f.flush()
+	f.write('gridPoints = ' + str(h.gridPoints))
+	f.flush()
+	f.write('experimentalConditions = ' + str(h.experimentalConditions))
 	f.close()
 	print('DONE')
