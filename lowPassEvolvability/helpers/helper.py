@@ -6,17 +6,22 @@ from time import sleep
 from copy import copy
 import imp
 
+def dict2DirName(dictionary, translator=None):
+	return '_'.join(map(lambda (x, y): x + str(y), dictionary.items()))
+
 class Helper:
 	def __init__(self, argv):
-    #This class is supposed to be constructed from sys.argv
-    #Arguments:
-    #  argv[0] - script name (ignored)
-    #  argv[1] - path to the evscripts directory
-    #  argv[2] - job ID
-    #  argv[3] - conditions string
-    #  argv[4] - grid string
-    #  argv[5] - number of points per job
+    '''This class is supposed to be constructed from sys.argv
+       Arguments:
+         argv[0] - script name (ignored)
+         argv[1] - path to the evscripts directory
+         argv[2] - job ID
+         argv[3] - conditions string
+         argv[4] - grid string
+         argv[5] - number of points per job
+		'''
 		self.evscriptsHome = argv[1]
+		self.routes = imp.load_source('routes', os.path.join(self.evscriptsHome, 'routes.py'))
 		self._getGridPoints(argv[4], int(argv[5]), int(argv[2]))
 		self._getConditionsFromString(argv[3])
 		self.rootDir = os.getcwd()
@@ -51,15 +56,13 @@ class Helper:
 		self.experimentalConditions = list(map(dictFromStrList, dictStrings))
 
 	def runExperiments(self):
-		def dict2dirName(dictionary):
-			return '_'.join(map(lambda (x, y): x + str(y), dictionary.items()))
 		for gridPoint in self.gridPoints:
-			gpDirName = dict2dirName(gridPoint)
+			gpDirName = dict2DirName(gridPoint)
 			os.makedirs(gpDirName)
 			os.chdir(gpDirName)
 
 			for condition in self.experimentalConditions:
-				condDirName = dict2dirName(condition)
+				condDirName = dict2DirName(condition)
 				os.makedirs(condDirName)
 				os.chdir(condDirName)
 
@@ -75,14 +78,3 @@ class Helper:
 		f = open('groupnotes.txt', 'w')
 		f.write(str(fcond))
 		f.close()
-
-if __name__ == '__main__':
-	f = open('helpernotes.txt', 'w')
-	f.write('Arguments: ' + str(sys.argv) + '\n')
-	f.write('Attempting to create Helper...\n')
-	f.flush()
-	h = Helper(sys.argv)
-	f.write(str(h))
-	f.close()
-	h.runExperiments()
-	print('DONE')
