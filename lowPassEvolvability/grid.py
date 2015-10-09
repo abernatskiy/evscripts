@@ -35,14 +35,14 @@ class Grid(object):
 
 	def toCompactString(self):
 		def iterable2csl(iterable):
-			return ','.join(map(str, iterable))
-		namedRanges = [ self.paramsNames[i] + ',' + iterable2csl(self.paramsRanges[i]) for i in xrange(self.dim) ]
+			return ':'.join(map(str, iterable))
+		namedRanges = [ self.paramsNames[i] + ':' + iterable2csl(self.paramsRanges[i]) for i in xrange(self.dim) ]
 		return '_'.join(namedRanges)
 
 	def fromCompactString(self, string):
 		self.paramsNames = []
 		self.paramsRanges = []
-		parsedStrings = map(lambda x: x.split(','), string.split('_'))
+		parsedStrings = map(lambda x: x.split(':'), string.split('_'))
 		for namedRangeList in parsedStrings:
 			self.paramsNames.append(namedRangeList[0])
 			self.paramsRanges.append(list(map(float, namedRangeList[1:])))

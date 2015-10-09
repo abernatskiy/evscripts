@@ -35,7 +35,7 @@ class Helper:
 		if gridString == 'None':
 			self.gridPoints.append({})
 		else:
-			grid = imp.load_source('grid', os.path.join(self.evscriptsHome + 'grid.py'))
+			grid = imp.load_source('grid', os.path.join(self.evscriptsHome, 'grid.py'))
 			globalGrid = grid.Grid([], [])
 			globalGrid.fromCompactString(gridString)
 			curGridPointID = jobID*pointsPerJob
@@ -51,7 +51,7 @@ class Helper:
 		self.experimentalConditions = list(map(dictFromStrList, dictStrings))
 
 	def runExperiments(self):
-		def dict2dirName(dict):
+		def dict2dirName(dictionary):
 			return '_'.join(map(lambda (x, y): x + str(y), dictionary.items()))
 		for gridPoint in self.gridPoints:
 			gpDirName = dict2dirName(gridPoint)
