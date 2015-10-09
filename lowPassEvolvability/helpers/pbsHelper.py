@@ -77,8 +77,6 @@ class Helper:
 		f.close()
 
 if __name__ == '__main__':
-	os.makedirs('fgsfds')
-	os.chdir('fgsfds')
 	f = open('helpernotes.txt', 'w')
 	f.write('Arguments: ' + str(sys.argv) + '\n')
 	f.write('Attempting to create Helper...\n')
