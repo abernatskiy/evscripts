@@ -21,7 +21,7 @@ class Helper:
 
 	def _getGridPoints(self, gridString, pointsPerJob, jobID):
 		self.gridPoints = []
-		if argv[4] != 'None':
+		if gridString != 'None':
 			grid = imp.load_source('grid', os.path.join(self.evscriptsHome + 'grid.py'))
 			globalGrid = grid.Grid([], [])
 			globalGrid.fromCompactString(gridString)
@@ -29,8 +29,8 @@ class Helper:
 			for i in xrange(pointsPerJob):
 				self.gridPoints.append(globalGrid[curGridPointID + i])
 
-	def _getConditionsFromString(self, conditionsString)
-		dictStrings = map(lambda x: x.split(','), conditionsString.split(';'))
+	def _getConditionsFromString(self, conditionsString):
+		dictStrings = map(lambda x: x.split(':'), conditionsString.split('_'))
 		def dictFromStrList(list):
 			keys = list[0::2]
 			vals = map(float, list[1::2])
@@ -41,14 +41,14 @@ if __name__ == '__main__':
 	os.makedirs('fgsfds')
 	os.chdir('fgsfds')
 	f = open('helpernotes.log', 'w')
-	f.write('Arguments:' + str(sys.argv) + '\n')
+	f.write('Arguments: ' + str(sys.argv) + '\n')
 	f.write('Attempting to create Helper...\n')
 	f.flush()
 	h = Helper(sys.argv)
-	f.write('evscriptsHome = ' + str(h.evscriptsHome))
+	f.write('evscriptsHome = ' + str(h.evscriptsHome) + '\n')
 	f.flush()
-	f.write('gridPoints = ' + str(h.gridPoints))
+	f.write('gridPoints = ' + str(h.gridPoints) + '\n')
 	f.flush()
-	f.write('experimentalConditions = ' + str(h.experimentalConditions))
+	f.write('experimentalConditions = ' + str(h.experimentalConditions) + '\n')
 	f.close()
 	print('DONE')

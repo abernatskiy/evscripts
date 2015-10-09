@@ -97,7 +97,7 @@ class Experiment(object):
 			return (len(self.grid)+self.pointsPerJob-1) / self.pointsPerJob
 
 	def _submitJobs(self, beginID, endID):
-		subprocess.check_call([pbsEnv.qsub,
+		cmdList = [pbsEnv.qsub,
 			'-q', self.queue,
 			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-t', str(beginID) + '-' + str(endID),
@@ -107,7 +107,9 @@ class Experiment(object):
            ',CONDITIONS=' + self._getConditionsString() +
            ',GRID=' + self._getGridString() +
            ',POINTS_PER_JOB=' + str(self.pointsPerJob),
-			routes.pbsBashHelper])
+			routes.pbsBashHelper]
+		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
+		subprocess.check_call(cmdList)
 
 	def _getGridString(self):
 		if self.grid is None:
@@ -117,9 +119,9 @@ class Experiment(object):
 
 	def _getConditionsString(self):
 		def dictionary2csl(dictionary):
-			return ','.join(map(lambda (x, y): x + ',' + str(y), dictionary.items()))
+			return ':'.join(map(lambda (x, y): x + ':' + str(y), dictionary.items()))
 		condStrings = [ dictionary2csl(dict) for dict in self.experimentalConditions ]
-		return ';'.join(condStrings)
+		return '_'.join(condStrings)
 
 	def _waitForCompletion(self):
 		pass
