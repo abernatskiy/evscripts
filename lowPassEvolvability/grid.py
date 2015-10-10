@@ -32,7 +32,7 @@ class Grid(object):
 
 	def __getitem__(self, j):
 		item = {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
-		item['randSeed'] = 9001.0 #TODO fix random seed treatment
+		item['randomSeed'] = 9001.0 #TODO fix random seed treatment
 		return item
 
 	def toCompactString(self):

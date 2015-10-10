@@ -9,7 +9,7 @@ import imp
 def dict2DirName(dictionary, translator=None):
 	return '_'.join(map(lambda (x, y): x + str(y), dictionary.items()))
 
-class Helper:
+class Helper(object):
 	def __init__(self, argv):
 		'''This class is supposed to be constructed from sys.argv
        Arguments:
@@ -78,6 +78,6 @@ class Helper:
 		self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
 
 	def _makeGroupNote(self, str):
-		f = open('groupnotes.txt', 'a')
+		f = open('groupNotes.txt', 'a')
 		f.write(str + '\n')
 		f.close()

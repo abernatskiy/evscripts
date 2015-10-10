@@ -65,7 +65,7 @@ class Experiment(object):
 		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
 
 	def _makeNote(self, line):
-		noteFile = open('notes.txt', 'a')
+		noteFile = open('experimentNotes.txt', 'a')
 		noteFile.write(line + '\n')
 		noteFile.close()
 
