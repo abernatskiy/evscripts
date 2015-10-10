@@ -31,7 +31,9 @@ class Grid(object):
 			yield {self.paramsNames[i]: gridvec[i] for i in xrange(self.dim)}
 
 	def __getitem__(self, j):
-		return {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
+		item = {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
+		item['randSeed'] = 9001.0 #TODO fix random seed treatment
+		return item
 
 	def toCompactString(self):
 		def iterable2csl(iterable):

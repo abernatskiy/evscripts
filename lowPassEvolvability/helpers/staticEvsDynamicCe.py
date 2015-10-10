@@ -17,8 +17,9 @@ class SEDCHelper(Helper):
 		super(Helper, self)._runGroup(fcond)
 		self._makeFIFOs()
 		self._spawnClient(fcond)
-		self._runServer()
+		self._runServer(fcond)
 		self._killClient()
+		self._ensureProcessesEnd()
 		self._removeFIFOs()
 		self._preprocessResults()
 
@@ -31,14 +32,21 @@ class SEDCHelper(Helper):
 
 	def _spawnClient(self, fcond):
 		clientBinary = os.path.join(self.rootDir, 'bin', 'cylindersEvasion_' + dict2DirName(fcond))
-		self.clientProc = subprocess.Popen([clientBinary, self.genesPipe, self.evalsPipe])
+		cmdList = [clientBinary, self.genesPipe, self.evalsPipe]
+#		self.clientProc = subprocess.Popen(cmdList)
+		print('Would execute ' + subprocess.list2cmdline(cmdList) + ' (at ' +os.getcwd() + ')')
 
-	def _runServer(self):
-		configPath = os.path.join(self.rootDir, 'config.ini')
-		subprocess.check_call([sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, 9001, configPath])
+	def _runServer(self, fcond):
+		configPath = self._getEvsConfig(fcond)
+		cmdList = [sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, fcond['randomSeed'], configPath]
+#		subprocess.check_call(cmdList)
+		print('Would execute ' + subprocess.list2cmdline(cmdList) + ' (at ' +os.getcwd() + ')')
+
+	def _getEvsConfig(self, fcond):
+		return os.path.join(self.rootDir, 'config.ini')
 
 	def _killClient(self):
-		self.clientProc.send_signal(subprocess.signal.SIGTERM)
+#		self.clientProc.send_signal(subprocess.signal.SIGTERM)
 
 	def _removeFIFOs(self):
 		subprocess.call([self.sysEnv.rm, self.genesPipe])
