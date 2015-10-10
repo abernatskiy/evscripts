@@ -5,6 +5,7 @@ import subprocess
 import imp
 
 import routes
+import shared.translators
 
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
@@ -118,10 +119,7 @@ class Experiment(object):
 			return self.grid.toCompactString()
 
 	def _getConditionsString(self):
-		def dictionary2csl(dictionary):
-			return ':'.join(map(lambda (x, y): x + ':' + str(y), dictionary.items()))
-		condStrings = [ dictionary2csl(dict) for dict in self.experimentalConditions ]
-		return '_'.join(condStrings)
+		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
 		pass

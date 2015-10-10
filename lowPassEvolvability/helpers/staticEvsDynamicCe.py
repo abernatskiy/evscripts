@@ -32,7 +32,7 @@ class staticEvsDynamicCeHelper(Helper):
 		self.evalsPipe = os.path.join(curDir, 'evals')
 
 	def _spawnClient(self, fcond):
-		clientBinary = os.path.join(self.rootDir, 'bin', 'cylindersEvasion_' + dict2DirName(fcond))
+		clientBinary = os.path.join(self.rootDir, 'bin', 'cylindersEvasion_' + self.translators.dict2FilesystemName(fcond))
 		cmdList = [clientBinary, self.genesPipe, self.evalsPipe]
 		self._makeGroupNote('Starting the client: ' + subprocess.list2cmdline(cmdList) + ' (at ' + os.getcwd() + ')')
 		self.clientProc = subprocess.Popen(cmdList)

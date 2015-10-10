@@ -1,5 +1,7 @@
 import itertools
 
+import translators
+
 class Grid(object):
 	'''Class which allows iteration over arbitrarily dimensional parameter grids.
      The set of grid points is defined to be a direct product of 1d grids for
@@ -36,18 +38,10 @@ class Grid(object):
 		return item
 
 	def toCompactString(self):
-		def iterable2csl(iterable):
-			return ':'.join(map(str, iterable))
-		namedRanges = [ self.paramsNames[i] + ':' + iterable2csl(self.paramsRanges[i]) for i in xrange(self.dim) ]
-		return '_'.join(namedRanges)
+		return translators.namedRanges2CompactString(self.paramsNames, self.paramsRanges)
 
 	def fromCompactString(self, string):
-		self.paramsNames = []
-		self.paramsRanges = []
-		parsedStrings = map(lambda x: x.split(':'), string.split('_'))
-		for namedRangeList in parsedStrings:
-			self.paramsNames.append(namedRangeList[0])
-			self.paramsRanges.append(list(map(float, namedRangeList[1:])))
+		self.paramsNames, self.paramsRanges = compactString2NamedRanges(string)
 		self.dim = len(self.paramsNames)
 		self.gridvals = list(itertools.product(*self.paramsRanges))
 
