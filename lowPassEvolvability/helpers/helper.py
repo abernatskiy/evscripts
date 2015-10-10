@@ -11,7 +11,7 @@ def dict2DirName(dictionary, translator=None):
 
 class Helper:
 	def __init__(self, argv):
-    '''This class is supposed to be constructed from sys.argv
+		'''This class is supposed to be constructed from sys.argv
        Arguments:
          argv[0] - script name (ignored)
          argv[1] - path to the evscripts directory
@@ -75,6 +75,9 @@ class Helper:
 			os.chdir('..')
 
 	def _runGroup(self, fcond):
-		f = open('groupnotes.txt', 'w')
-		f.write(str(fcond))
+		self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
+
+	def _makeGroupNote(self, str):
+		f = open('groupnotes.txt', 'a')
+		f.write(str + '\n')
 		f.close()
