@@ -50,12 +50,12 @@ class Helper(object):
 
 	def runExperiments(self):
 		for gridPoint in self.gridPoints:
-			gpDirName = self.translators.dict2FilesystemName(gridPoint)
+			gpDirName = self.translators.dictionary2FilesystemName(gridPoint)
 			os.makedirs(gpDirName)
 			os.chdir(gpDirName)
 
 			for condition in self.experimentalConditions:
-				condDirName = self.translators.dict2FilesystemName(condition)
+				condDirName = self.translators.dictionary2FilesystemName(condition)
 				os.makedirs(condDirName)
 				os.chdir(condDirName)
 

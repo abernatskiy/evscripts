@@ -41,7 +41,7 @@ class Grid(object):
 		return translators.namedRanges2CompactString(self.paramsNames, self.paramsRanges)
 
 	def fromCompactString(self, string):
-		self.paramsNames, self.paramsRanges = compactString2NamedRanges(string)
+		self.paramsNames, self.paramsRanges = translators.compactString2NamedRanges(string)
 		self.dim = len(self.paramsNames)
 		self.gridvals = list(itertools.product(*self.paramsRanges))
 

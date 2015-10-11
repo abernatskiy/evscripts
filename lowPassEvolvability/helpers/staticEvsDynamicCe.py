@@ -7,7 +7,6 @@ import sys
 from time import sleep
 
 from helper import Helper
-from helper import dict2DirName
 
 class staticEvsDynamicCeHelper(Helper):
 	def __init__(self, argv):
@@ -32,7 +31,7 @@ class staticEvsDynamicCeHelper(Helper):
 		self.evalsPipe = os.path.join(curDir, 'evals')
 
 	def _spawnClient(self, fcond):
-		clientBinary = os.path.join(self.rootDir, 'bin', 'cylindersEvasion_' + self.translators.dict2FilesystemName(fcond))
+		clientBinary = os.path.join(self.rootDir, 'bin', 'cylindersEvasion_' + self.translators.dictionary2FilesystemName(fcond))
 		cmdList = [clientBinary, self.genesPipe, self.evalsPipe]
 		self._makeGroupNote('Starting the client: ' + subprocess.list2cmdline(cmdList) + ' (at ' + os.getcwd() + ')')
 		self.clientProc = subprocess.Popen(cmdList)
@@ -49,7 +48,6 @@ class staticEvsDynamicCeHelper(Helper):
 	def _killClient(self):
 		self._makeGroupNote('Killing the client...')
 		self.clientProc.send_signal(subprocess.signal.SIGTERM)
-		pass
 
 	def _ensureProcessesEnd(self):
 		sleep(1) # TODO: better implementation
