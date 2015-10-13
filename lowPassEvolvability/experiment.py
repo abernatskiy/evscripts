@@ -3,6 +3,7 @@ import sys
 import shutil
 import subprocess
 import imp
+from time import sleep
 
 import routes
 import shared.translators
@@ -122,7 +123,8 @@ class Experiment(object):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
-		pass
+		while subprocess.check_output([pbsEnv.qstat, '-u', 'abernats']) != '':
+			sleep(300)
 
 	def _processResults(self):
 		pass
