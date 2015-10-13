@@ -9,6 +9,7 @@ pbsEnv = join(envHome, 'pbsVacc.py')
 
 helpersHome = join(evscriptsHome, 'helpers')
 pbsBashHelper = join(helpersHome, 'pbsVaccSubmittable.sh')
-pbsPythonHelper = join(helpersHome, 'staticEvsDynamicCe.py')
+pbsPythonHelper = join(helpersHome, 'staticEvsDynamicCeHelper.py')
 
 evsExecutable = join(home, 'evs', 'mainConfig.py')
+clientHome = join(home, 'cylindersEvasion')

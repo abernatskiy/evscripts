@@ -10,3 +10,4 @@ Check if the custom wall clock time limit is less than the queue WCT limit and t
 Submit jobs not at once, but as the other jobs are getting completed.
 Continue a stalled experiment.
 Fix the behavior of subprocess somehow and switch from :? to ,;
+Cleaner make call at staticEvsDynamicCeExperiment._compileClient()
