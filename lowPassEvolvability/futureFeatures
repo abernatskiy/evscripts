@@ -1,5 +1,5 @@
 Wait on queue
-Less noise in the helper output
+Transfer client compilation to Helper
 Preprocessing the logs
 Random seed treatment
   o1: introduce the concept of additional parameters to the code starting with experiment.py and apply it to random seeds

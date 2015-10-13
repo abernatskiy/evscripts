@@ -3,4 +3,4 @@
 
 qsub = '/opt/pbs/bin/qsub'
 defaultQueue = 'shortq'
-queueLims = {'shortq': '04:00:00'}
+queueLims = {'shortq': '03:00:00'}

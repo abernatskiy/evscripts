@@ -30,7 +30,9 @@ class Grid(object):
 
 	def __iter__(self):
 		for gridvec in self.gridvals:
-			yield {self.paramsNames[i]: gridvec[i] for i in xrange(self.dim)}
+			pointDict = {self.paramsNames[i]: gridvec[i] for i in xrange(self.dim)}
+			pointDict['randomSeed'] = 9001.0
+			yield pointDict
 
 	def __getitem__(self, j):
 		item = {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
