@@ -124,7 +124,7 @@ class Experiment(object):
 
 	def _waitForCompletion(self):
 		while subprocess.check_output([pbsEnv.qstat, '-u', 'abernats']) != '':
-			sleep(300)
+			sleep(120)
 
 	def _processResults(self):
 		pass

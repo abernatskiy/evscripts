@@ -4,6 +4,7 @@ Preprocessing the logs
 Random seed treatment
   o1: introduce the concept of additional parameters to the code starting with experiment.py and apply it to random seeds
 	o2: include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
+Version notes about all involved apps (including info on origins and git diffs)
 At staticEvsDynamicCeHelper, do something about the client and server processes other than sleeping on them
 Grids which support elementwise list multiplication instead of direct multiplication (for random seed treatment)
 Check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does.

@@ -21,7 +21,7 @@ class staticEvsDynamicCeHelper(Helper):
 		self._killClient()
 		self._ensureProcessesEnd()
 		self._removeFIFOs()
-		self._preprocessResults()
+		self._preprocessResults(fcond)
 
 	def _makeFIFOs(self):
 		subprocess.call([self.sysEnv.mkfifo, 'genes'])
@@ -56,8 +56,9 @@ class staticEvsDynamicCeHelper(Helper):
 		subprocess.call([self.sysEnv.rm, self.genesPipe])
 		subprocess.call([self.sysEnv.rm, self.evalsPipe])
 
-	def _preprocessResults(self):
-		pass # TODO: implement
+	def _preprocessResults(self, conditions):
+		sedcSettings = imp.load_source('sysEnv', self.routes.sedcSettings)
+		sedcSettings.preprocessData(conditions)
 
 if __name__ == '__main__':
 	f = open('helpernotes' + sys.argv[2] + '.txt', 'w')

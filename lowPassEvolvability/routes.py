@@ -11,5 +11,8 @@ helpersHome = join(evscriptsHome, 'helpers')
 pbsBashHelper = join(helpersHome, 'pbsVaccSubmittable.sh')
 pbsPythonHelper = join(helpersHome, 'staticEvsDynamicCeHelper.py')
 
-evsExecutable = join(home, 'evs', 'mainConfig.py')
 clientHome = join(home, 'cylindersEvasion')
+evsHome = join(home, 'evs')
+evsExecutable = join(evsHome, 'mainConfig.py')
+
+sedcSettings = join(evscriptsHome, 'shared', 'staticEvsDynamicCeForLowPassEvolvability.py')
