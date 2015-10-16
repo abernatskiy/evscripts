@@ -54,7 +54,7 @@ class staticEvsDynamicCeExperiment(Experiment):
 						'length = 60\n'
 						'\n'
 						'[evolParams]\n'
-						'populationSize = 10\n'
+						'populationSize = 100000\n'
 						'logPopulation = yes\n')
 		f.close()
 
