@@ -43,7 +43,8 @@ class Helper(object):
 			globalGrid.fromCompactString(gridString)
 			curGridPointID = jobID*pointsPerJob
 			for i in xrange(pointsPerJob):
-				self.gridPoints.append(globalGrid[curGridPointID + i])
+				if curGridPointID+i < len(globalGrid):
+					self.gridPoints.append(globalGrid[curGridPointID + i])
 
 	def _getConditionsFromString(self, conditionsString):
 		self.experimentalConditions = self.translators.compactString2ListOfDictionaries(conditionsString)

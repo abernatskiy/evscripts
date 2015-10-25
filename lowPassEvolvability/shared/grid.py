@@ -35,6 +35,8 @@ class Grid(object):
 			yield pointDict
 
 	def __getitem__(self, j):
+		if j >= len(self.gridvals):
+			raise IndexError('grid index out of range')
 		item = {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
 		item['randomSeed'] = 9001.0 #TODO fix random seed treatment
 		return item
