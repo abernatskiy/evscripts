@@ -1,4 +1,7 @@
 Fix off-by-one at LinLogGrid
+Dummies for
+  qsub
+  helper
 Wait on queue
 Transfer client compilation to Helper
 Preprocessing the logs
