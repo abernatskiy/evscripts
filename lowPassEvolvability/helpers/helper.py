@@ -5,8 +5,9 @@ import os
 from time import sleep
 from copy import copy
 import imp
+from abc import ABCMeta, abstractmethod
 
-class Helper(object):
+class Helper(object, metaclass=ABCMeta):
 	def __init__(self, argv):
 		'''This class is supposed to be constructed from sys.argv
        Arguments:
@@ -68,6 +69,7 @@ class Helper(object):
 
 			os.chdir('..')
 
+	@abstractmethod
 	def _runGroup(self, fcond):
 		self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
 

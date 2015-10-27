@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import imp
 from time import sleep
+from abc import ABCMeta, abstractmethod
 
 import routes
 import shared.translators
@@ -11,11 +12,29 @@ import shared.translators
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
 
-class Experiment(object):
-	'''Base class for Experiment objects.
+class Experiment(object, metaclass=ABCMeta):
+	'''Abstract base class for Experiment objects.
      These objects are intended for use in computational
      experiments in evolutionary computation ran on
      PBS-based supercomputers.
+
+     Abstract methods:
+       prepareEnv(self) - must create a suitable
+         environment for the experiments.
+         May include creating config files, compiling
+         custom binaries, etc.
+         Is executed at the work dir (./<name>).
+       processResults(self) - processes the results.
+         Is executed at the work dir (./<name>).
+
+     Handy utilities for building processResults():
+       enterWorkDir(self)
+       exitWorkDir(self) - for user navigation when calling
+         processResults() outside of run()
+       executeAtEveryExperimentDir(self, function, cargs, kwargs)
+       executeAtEveryConditionsDir(self, function, cargs, kwargs)
+         - self-explanatory, works only within the work dir.
+
 	'''
 	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None):
 		'''Arguments:
@@ -56,14 +75,19 @@ class Experiment(object):
 		self.expectedWallClockTime = pbsEnv.queueLims[self.queue] if expectedWallClockTime is None else expectedWallClockTime
 
 	def run(self):
-		self._prepareEnv()
+		self.prepareEnv()
 		self._submitJobs(0, self._numJobs()-1)
 		self._waitForCompletion()
-		self._processResults()
+		self.processResults()
+		self.exitWorkDir() # entered it at prepareEnv()
 
-	def _prepareEnv(self):
-		self._makeDir()
-		os.chdir(self.name)
+	@abstractmethod
+	def prepareEnv(self):
+		'''Must be executed by any child through super.
+       The child may assume that it operates inside the working dir.
+    '''
+		self._makeWorkDir()
+		self.enterWorkDir()
 		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
 
 	def _makeNote(self, line):
@@ -71,7 +95,7 @@ class Experiment(object):
 		noteFile.write(line + '\n')
 		noteFile.close()
 
-	def _makeDir(self):
+	def _makeWorkDir(self):
 		'''Creates a working directory named after the experiment in the current directory'''
 		if os.path.isdir(self.name):
 			print('Working directory exists, trying to back it up and create a new one...')
@@ -88,6 +112,14 @@ class Experiment(object):
 		elif os.path.exists(self.name):
 			raise OSError('Working directory path exists, but is not a directory. Go fix it.')
 		os.makedirs(self.name)
+
+	def enterWorkDir(self):
+		if not os.path.isdir(self.name):
+			raise OSError('Cannot find working dir ' + self.name)
+		os.chdir(self.name)
+
+	def exitWorkDir(self):
+		os.chdir('..')
 
 	def _dateTime(self):
 		return subprocess.check_output([sysEnv.date])[:-1]
@@ -123,13 +155,14 @@ class Experiment(object):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
-		while subprocess.check_output([pbsEnv.qstat, '-u', 'abernats']) != '':
-			sleep(120)
+		while subprocess.check_output([pbsEnv.qstat, '-u', pbsEnv.user]) != '':
+			sleep(pbsEnv.qstatCheckingPeriod)
 
-	def _processResults(self):
+	@abstractmethod
+	def processResults(self):
 		pass
 
-	def _executeAtEveryExperimentDir(self, function, cargs, kwargs):
+	def executeAtEveryExperimentDir(self, function, cargs, kwargs):
 		'''The function must accept a grid point parameter dictionary as its first argument'''
 		for gridPoint in self.grid:
 			gpDirName = shared.translators.dictionary2FilesystemName(gridPoint)
@@ -141,7 +174,7 @@ class Experiment(object):
 			except OSError as err:
 					print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 
-	def _executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
+	def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
 		'''Function expFunc must accept a grid point parameter dictionary as its first argument.
        Function condFunc must accept a grid point parameter dictionary as its first
        argument and a conditions parameter dictionary as its second argument.

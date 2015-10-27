@@ -2,6 +2,7 @@ import os
 import subprocess
 import imp
 from copy import copy
+from abc import abstractmethod
 
 import routes
 import shared.grid
@@ -9,8 +10,7 @@ import shared.translators
 from experiment import Experiment
 
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
-
-numProcsForMake = 6 # VACC rootnode has 12 CPUs, I'll take a half
+pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
 
 def _dictionary2CeGccOptions(dict):
 	numericalParams = {	'angularGain': 'ANGULAR_GAIN',
@@ -25,7 +25,7 @@ def _dictionary2CeGccOptions(dict):
 										'withOcclusion': 'WITH_OCCLUSION',
 										'withGraphics': 'WITH_GRAPHICS',
 										'withScreenshots': 'WITH_SCREENSHOTS' }
-	ignoreParams = ['randomSeed'] # FIXME
+	ignoreParams = ['randomSeed']
 	def paramString(paramName, dict):
 		if paramName in numericalParams:
 			return '-D' + numericalParams[paramName] + '=' + str(dict[paramName])
@@ -38,25 +38,30 @@ def _dictionary2CeGccOptions(dict):
 	return ' '.join([ paramString(paramName, dict) for paramName in dict.keys() ])
 
 class staticEvsDynamicCeExperiment(Experiment):
-	def _prepareEnv(self):
+	'''Abstract base class for Expertiments which use
+     the same EVS config, but different cylindersEvasion
+     binaries for every run.
+
+     Abstract methods:
+       processResult(self) - processes the results.
+         Inherited from Experiment.
+       evsConfig(self) - returns the EVS config as a
+         string.
+	'''
+
+	def prepareEnv(self):
 		super(staticEvsDynamicCeExperiment, self)._prepareEnv()
-		self._createEvsConfig()
+		self._writeEvsConfig()
 		self._prepareClientBinaries()
 
-	def _createEvsConfig(self):
+	def _writeEvsConfig(self):
 		f = open('config.ini', 'w')
-		f.write('[classes]\n'
-						'individual = trinaryVectorSureMutation\n'
-						'communicator = chunkedUnixPipe\n'
-						'evolver = evolvabilityMeasurerUniformSampling\n'
-						'\n'
-						'[indivParams]\n'
-						'length = 60\n'
-						'\n'
-						'[evolParams]\n'
-						'populationSize = 100000\n'
-						'logPopulation = yes\n')
+		f.write(self.evsConfig())
 		f.close()
+
+	@abstractmethod
+	def evsConfig(self):
+		pass
 
 	def _prepareClientBinaries(self):
 		mainExpDir = os.getcwd()
@@ -78,7 +83,7 @@ class staticEvsDynamicCeExperiment(Experiment):
 		logFile = open(outPath + '.makestderr', 'w')
 
 		subprocess.check_call([sysEnv.make, 'clean'], stdout=FNULL)
-		subprocess.check_call(sysEnv.make + ' -j' + str(numProcsForMake) + ' MORECFLAGS="' + optionsStr + '"' , shell=True, stdout=FNULL, stderr=logFile)
+		subprocess.check_call(sysEnv.make + ' -j' + str(pbsEnv.maxRootNodeThreads) + ' MORECFLAGS="' + optionsStr + '"' , shell=True, stdout=FNULL, stderr=logFile)
 
 		logFile.close()
 		FNULL.close()
