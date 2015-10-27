@@ -7,7 +7,15 @@ from copy import copy
 import imp
 from abc import ABCMeta, abstractmethod
 
-class Helper(object, metaclass=ABCMeta):
+class Helper(object):
+	'''Abstract base class for Helper objects which handle execution of
+     the final experiment processes at cluster nodes.
+
+     Abstract methods:
+       runGroup(self, fullConditions) - function which executes the
+         processes at exactly one set of experimental parameter values.
+	'''
+	__metaclass__ = ABCMeta
 	def __init__(self, argv):
 		'''This class is supposed to be constructed from sys.argv
        Arguments:
@@ -63,14 +71,14 @@ class Helper(object, metaclass=ABCMeta):
 
 				fullCond = copy(condition)
 				fullCond.update(gridPoint)
-				self._runGroup(fullCond)
+				self.runGroup(fullCond)
 
 				os.chdir('..')
 
 			os.chdir('..')
 
 	@abstractmethod
-	def _runGroup(self, fcond):
+	def runGroup(self, fcond):
 		self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
 
 	def _makeGroupNote(self, str):

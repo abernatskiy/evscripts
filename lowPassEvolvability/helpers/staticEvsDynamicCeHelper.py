@@ -13,8 +13,8 @@ class staticEvsDynamicCeHelper(Helper):
 		super(staticEvsDynamicCeHelper, self).__init__(argv)
 		self.sysEnv = imp.load_source('sysEnv', self.routes.sysEnv)
 
-	def _runGroup(self, fcond):
-		super(staticEvsDynamicCeHelper, self)._runGroup(fcond)
+	def runGroup(self, fcond):
+		super(staticEvsDynamicCeHelper, self).runGroup(fcond)
 		self._makeFIFOs()
 		self._spawnClient(fcond)
 		self._runServer(fcond)

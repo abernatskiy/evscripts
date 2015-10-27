@@ -50,7 +50,7 @@ class staticEvsDynamicCeExperiment(Experiment):
 	'''
 
 	def prepareEnv(self):
-		super(staticEvsDynamicCeExperiment, self)._prepareEnv()
+		super(staticEvsDynamicCeExperiment, self).prepareEnv()
 		self._writeEvsConfig()
 		self._prepareClientBinaries()
 

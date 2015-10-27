@@ -12,7 +12,7 @@ import shared.translators
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
 
-class Experiment(object, metaclass=ABCMeta):
+class Experiment(object):
 	'''Abstract base class for Experiment objects.
      These objects are intended for use in computational
      experiments in evolutionary computation ran on
@@ -34,8 +34,9 @@ class Experiment(object, metaclass=ABCMeta):
        executeAtEveryExperimentDir(self, function, cargs, kwargs)
        executeAtEveryConditionsDir(self, function, cargs, kwargs)
          - self-explanatory, works only within the work dir.
-
 	'''
+	__metaclass__ = ABCMeta
+
 	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None):
 		'''Arguments:
        name is the name of the experiment AND of its

@@ -5,10 +5,10 @@ import shared.grid
 
 class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):
-		print 'I got executed!'
+		raise NotImplementedError('processResults() is, unfortunately, still not implemented')
 
 	def evsConfig(self):
-		return  '[classes]\n'
+		return ('[classes]\n'
 						'individual = trinaryVectorSureMutation\n'
 						'communicator = chunkedUnixPipe\n'
 						'evolver = evolvabilityMeasurerUniformSampling\n'
@@ -18,11 +18,12 @@ class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'\n'
 						'[evolParams]\n'
 						'populationSize = 10\n'
-						'logPopulation = yes\n'
+						'logPopulation = yes\n')
 
 if __name__ == '__main__':
 	e = uniformSamplingLPEExperiment('uniformSamplingLPE20151027',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
 				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 4.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 1, 1]]),
-				pointsPerJob=4)
+				pointsPerJob=4,
+				expectedWallClockTime='00:10:00')
 	e.run()
