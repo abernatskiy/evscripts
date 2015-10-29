@@ -176,8 +176,7 @@ class Experiment(object):
 					print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 
 	def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
-		'''Function expFunc must accept a grid point parameter dictionary as its first argument.
-       Function condFunc must accept a grid point parameter dictionary as its first
+		'''Function condFunc must accept a grid point parameter dictionary as its first
        argument and a conditions parameter dictionary as its second argument.
 		'''
 		def executeAtEveryConditionsDir(gridPoint, expObj, function, cargs, kwargs):
@@ -191,4 +190,4 @@ class Experiment(object):
 				except OSError as err:
 					print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 		condArgs = (self, condFunc, condCArgs, condKWArgs)
-		self._executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
+		self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
