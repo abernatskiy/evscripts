@@ -17,3 +17,4 @@ Continue a stalled experiment.
 Fix the behavior of subprocess somehow and switch from :? to ,;
 Cleaner make call at staticEvsDynamicCeExperiment._compileClient()
 experimentator.readthedocs.org integration
+class for error- (and possibly also argument difference-) aware results
