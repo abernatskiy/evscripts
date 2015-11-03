@@ -74,6 +74,8 @@ class Experiment(object):
 		self.pointsPerJob = pointsPerJob
 		self.queue = pbsEnv.defaultQueue if queue is None else queue
 		self.expectedWallClockTime = pbsEnv.queueLims[self.queue] if expectedWallClockTime is None else expectedWallClockTime
+		self._resultsDir = os.path.join(os.getcwd(), name, 'results')
+		self._resultsFiles = {}
 
 	def run(self):
 		self.prepareEnv()
@@ -90,9 +92,7 @@ class Experiment(object):
 		self._makeWorkDir()
 		self.enterWorkDir()
 		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
-		os.makedirs('results')
-		self._resultsDir = os.path.join(os.getcwd(), 'results')
-		self._resultsFiles = {}
+		os.makedirs(self._resultsDir)
 
 	def _makeNote(self, line):
 		noteFile = open('experimentNotes.txt', 'a')
@@ -233,7 +233,7 @@ class Experiment(object):
 		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as resultsFile:
 			if self._resultsFiles.has_key(resultsFileName):
 				origParamsDict, origResultsDict = self._resultsFiles[resultsFileName]
-				if paramDict != origParamDict or resultsDict != origResultsDict:
+				if paramsDict != origParamsDict or resultsDict != origResultsDict:
 					raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
 			else:
 				addResultFileHeader(resultsFile, paramsDict, resultsDict)
