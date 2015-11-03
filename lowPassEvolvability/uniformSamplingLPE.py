@@ -6,6 +6,7 @@ import subprocess
 
 import staticEvsDynamicCeExperiment as sedce
 import shared.grid
+from copy import copy
 
 def _extractFitness(filename):
 	strFitnessVals = subprocess.check_output(['/usr/bin/cut', '-d', ' ', '-f', '1', filename])
@@ -24,11 +25,24 @@ class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 		def processDir(gridPoint, condPoint, self):
 			fileNameBase = 'population' + str(int(gridPoint['randomSeed'])) + '_gen'
 			files = [ fileNameBase + '0.log', fileNameBase + '1.log' ]
+
 			inc = _readFitnessIncrements(files)
 			diff = _readFitnessDifferences(files)
+
+			fullCond = copy(gridPoint)
+			fullCond.update(condPoint)
 			def stderr(samples):
 				return np.std(samples)/np.sqrt(float(len(samples)))
-			print repr((np.mean(inc), stderr(inc), np.mean(diff), stderr(inc)))
+
+			results = {}
+			results['incMean'] = np.mean(inc)
+			results['incStdErr'] = stderr(inc)
+			self.addResultRecord('increments.dat', fullCond, results)
+
+			results = {}
+			results['diffMean'] = np.mean(diff)
+			results['diffStdErr'] = stderr(diff)
+			self.addResultRecord('differences.dat', fullCond, results)
 		self.executeAtEveryConditionsDir(processDir, (self,), {})
 
 	def evsConfig(self):
