@@ -196,27 +196,28 @@ class Experiment(object):
 		self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
 
 	def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
-		'''Appends a record to a results accumulating file. File format:
-         \# paramsKey0 ... paramsKeyN resultsKey0 ... resultsKeyM
-          paramsVal0 ... paramsValN resultsVal0 ... resultsValM
+		'''Appends a record to a results accumulating file. Can be exeuted from
+       any point. File format:
+         # paramsKey0 ... paramsKeyN resultsKey0 ... resultsKeyM
+         paramsVal0 ... paramsValN resultsVal0 ... resultsValM
        The header comment is only added when the function is called for the
        first time, the result lines are only appended afterwards.
        If the function is called with a different set of parameter/result
        names than the one used in the intial call, ValueError is raised.
        For best results, keep the keys short (under 16 symbols).'''
-		numDecimals = 10
+		numDecimals = 14
 		numReprWidth = numDecimals + 6
 
 		def addResultFileHeader(file, params, results):
-			file.write('\#')
-			initialShift = 1
+			file.write('#')
+			initialShift = 2
 			for paramName in params.keys():
 				paramNameStr = paramName.ljust(numReprWidth - initialShift, ' ')
 				initialShift = 0
 				file.write(' ' + paramNameStr)
 			for resultName in results.keys():
 				resultNameStr = resultName.ljust(numReprWidth, ' ')
-				file.write(' ' + resultsNameStr)
+				file.write(' ' + resultNameStr)
 			resultsFile.write('\n')
 		def addResultLine(file, params, results):
 			leadingSpaces = 0
@@ -226,7 +227,7 @@ class Experiment(object):
 				leadingSpaces = 1
 			for resultVal in results.values():
 				resultValStr = ( '%.' + str(numDecimals) + 'e' ) % resultVal
-				file.write(' ' + paramValStr)
+				file.write(' ' + resultValStr)
 			file.write('\n')
 
 		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as resultsFile:
