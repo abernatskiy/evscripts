@@ -1,4 +1,5 @@
 Fix off-by-one at LinLogGrid
+Submit jobs not at once, but as the other jobs are getting completed.
 Dummies for
   qsub
   helper
@@ -8,11 +9,9 @@ Preprocessing the logs
 Random seed treatment
   o1: introduce the concept of additional parameters to the code starting with experiment.py and apply it to random seeds
 	o2: include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
-Version notes about all involved apps (including info on origins and git diffs)
 At staticEvsDynamicCeHelper, do something about the client and server processes other than sleeping on them
 Grids which support elementwise list multiplication instead of direct multiplication (for random seed treatment)
 Check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does.
-Submit jobs not at once, but as the other jobs are getting completed.
 Continue a stalled experiment.
 Fix the behavior of subprocess somehow and switch from :? to ,;
 Cleaner make call at staticEvsDynamicCeExperiment._compileClient()

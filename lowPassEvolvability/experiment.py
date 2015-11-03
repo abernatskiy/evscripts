@@ -92,6 +92,8 @@ class Experiment(object):
 		self._makeWorkDir()
 		self.enterWorkDir()
 		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
+		self._recordVersions()
+		self._makeNote('Apps versions recorded successfully')
 		os.makedirs(self._resultsDir)
 
 	def _makeNote(self, line):
@@ -239,3 +241,20 @@ class Experiment(object):
 				addResultFileHeader(resultsFile, paramsDict, resultsDict)
 				self._resultsFiles[resultsFileName] = (paramsDict, resultsDict)
 			addResultLine(resultsFile, paramsDict, resultsDict)
+
+	def _recordVersions(self):
+		def pathVerRecord(file, repoName, repoPath):
+			curDir = os.getcwd()
+			os.chdir(repoPath)
+			versionStr = subprocess.check_output([sysEnv.git, 'rev-parse', 'HEAD'])
+			branchStr = subprocess.check_output([sysEnv.git, 'branch'])
+			diffStr = subprocess.check_output([sysEnv.git, 'diff'])
+			file.write(repoName + ' path: ' + repoPath + '\n')
+			file.write(repoName + ' branch: ' + branchStr)
+			file.write(repoName + ' version: ' + versionStr + '\n')
+			file.write('git diff for ' + repoName + ':\n' + diffStr + '\n-------------------------\n')
+			os.chdir(curDir)
+		with open('versions.txt', 'w') as verFile:
+			pathVerRecord(verFile, 'evscripts', routes.evscriptsHome)
+			pathVerRecord(verFile, 'evs', routes.evsHome)
+			pathVerRecord(verFile, 'client', routes.clientHome)
