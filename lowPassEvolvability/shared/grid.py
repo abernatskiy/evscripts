@@ -72,10 +72,8 @@ class LogLinGrid(Grid):
 			if gridType == 'lin':
 				getVal = lambda i: referenceValue + float(i)*modifier
 			elif gridType == 'log':
-				getVal = lambda i: referenceValue * (modifier**(i+1))
+				getVal = lambda i: referenceValue * (modifier**i)
 			else:
 				raise ValueError('Second field of the parameter grid description must be either \'lin\' or \'log\'')
-#			print 'Paramname ' + paramName
-#			print 'Range ' + str([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
 			paramsRanges.append([ getVal(i) for i in xrange(-1*downSteps, upSteps+1) ])
 		super(LogLinGrid, self).__init__(paramsNames, paramsRanges)
