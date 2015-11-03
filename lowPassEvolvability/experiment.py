@@ -206,9 +206,9 @@ class Experiment(object):
        first time, the result lines are only appended afterwards.
        If the function is called with a different set of parameter/result
        names than the one used in the intial call, ValueError is raised.
-       For best results, keep the keys short (under 16 symbols).'''
-		numDecimals = 14
-		numReprWidth = numDecimals + 6
+       For best results, keep the keys short (under 20 symbols).'''
+		numDecimals = 13
+		numReprWidth = numDecimals + 7
 
 		def addResultFileHeader(file, params, results):
 			file.write('#')
@@ -225,21 +225,24 @@ class Experiment(object):
 			leadingSpaces = 0
 			for paramVal in params.values():
 				paramValStr = ( '%.' + str(numDecimals) + 'e' ) % paramVal
+				paramValStr = paramValStr.rjust(numReprWidth, ' ')
 				file.write(' '*leadingSpaces + paramValStr)
 				leadingSpaces = 1
 			for resultVal in results.values():
 				resultValStr = ( '%.' + str(numDecimals) + 'e' ) % resultVal
+				resultValStr = resultValStr.rjust(numReprWidth, ' ')
 				file.write(' ' + resultValStr)
 			file.write('\n')
 
 		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as resultsFile:
 			if self._resultsFiles.has_key(resultsFileName):
-				origParamsDict, origResultsDict = self._resultsFiles[resultsFileName]
-				if paramsDict != origParamsDict or resultsDict != origResultsDict:
+				origParamNames, origResultNames = self._resultsFiles[resultsFileName]
+				if paramsDict.keys() != origParamNames or resultsDict.keys() != origResultNames:
+					print 'Reprs: orig param ' + repr(origParamsDict) + ' new param ' + repr(paramsDict) + ' orig results ' + repr(origResultsDict) + ' new results ' + repr(resultsDict) + '\n'
 					raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
 			else:
 				addResultFileHeader(resultsFile, paramsDict, resultsDict)
-				self._resultsFiles[resultsFileName] = (paramsDict, resultsDict)
+				self._resultsFiles[resultsFileName] = (paramsDict.keys(), resultsDict.keys())
 			addResultLine(resultsFile, paramsDict, resultsDict)
 
 	def _recordVersions(self):
@@ -247,10 +250,11 @@ class Experiment(object):
 			curDir = os.getcwd()
 			os.chdir(repoPath)
 			versionStr = subprocess.check_output([sysEnv.git, 'rev-parse', 'HEAD'])
-			branchStr = subprocess.check_output([sysEnv.git, 'branch'])
+			branchOut = subprocess.check_output([sysEnv.git, 'branch'])
+			branchStr = filter(lambda str: str.find('* ') == 0, branchOut.split('\n'))[0].replace('* ', '')
 			diffStr = subprocess.check_output([sysEnv.git, 'diff'])
 			file.write(repoName + ' path: ' + repoPath + '\n')
-			file.write(repoName + ' branch: ' + branchStr)
+			file.write(repoName + ' branch: ' + branchStr + '\n')
 			file.write(repoName + ' version: ' + versionStr + '\n')
 			file.write('git diff for ' + repoName + ':\n' + diffStr + '\n-------------------------\n')
 			os.chdir(curDir)
