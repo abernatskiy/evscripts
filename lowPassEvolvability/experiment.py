@@ -37,7 +37,7 @@ class Experiment(object):
 	'''
 	__metaclass__ = ABCMeta
 
-	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None):
+	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None, dryRun=False):
 		'''Arguments:
        name is the name of the experiment AND of its
          working directory.
@@ -54,7 +54,8 @@ class Experiment(object):
          same type as the ones used in
          experimentalConditions. The default is to
          conduct the experiment just once under no extra
-         conditions.
+         conditions. Saved into the member variable
+         self.grid.
        pointsPerJob indicates how many experiments
          should be conducted per cluster job. The default
          is one, and that includes performing runs for
@@ -67,6 +68,9 @@ class Experiment(object):
            03:00:00 - three hours
            7:00:00:00 - seven days
          Cutoff time of the queue is used by default.
+			dryRun shows whether or not you want to perform
+         time-consuming operations or just do a dry run.
+         Available as self.dryRun.
 		'''
 		self.name = name
 		self.experimentalConditions = experimentalConditions
@@ -76,6 +80,7 @@ class Experiment(object):
 		self.expectedWallClockTime = pbsEnv.queueLims[self.queue] if expectedWallClockTime is None else expectedWallClockTime
 		self._resultsDir = os.path.join(os.getcwd(), name, 'results')
 		self._resultsFiles = {}
+		self.dryRun = dryRun
 
 	def run(self):
 		self.prepareEnv()
@@ -149,7 +154,8 @@ class Experiment(object):
            ',POINTS_PER_JOB=' + str(self.pointsPerJob),
 			routes.pbsBashHelper]
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
-		subprocess.check_call(cmdList)
+		if not self.dryRun:
+			subprocess.check_call(cmdList)
 
 	def _getGridString(self):
 		if self.grid is None:
@@ -161,8 +167,9 @@ class Experiment(object):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
-		while subprocess.check_output([pbsEnv.qstat, '-u', pbsEnv.user]) != '':
-			sleep(pbsEnv.qstatCheckingPeriod)
+		if not self.dryRun:
+			while subprocess.check_output([pbsEnv.qstat, '-u', pbsEnv.user]) != '':
+				sleep(pbsEnv.qstatCheckingPeriod)
 
 	@abstractmethod
 	def processResults(self):

@@ -72,7 +72,11 @@ class staticEvsDynamicCeExperiment(Experiment):
 				fullParams = copy(gridParams)
 				fullParams.update(experimentalParams)
 				clientBinaryPath = os.path.join(mainExpDir, 'bin', 'cylindersEvasion_' + shared.translators.dictionary2FilesystemName(fullParams))
-				self._compileClient(fullParams, clientBinaryPath)
+				if not self.dryRun:
+					self._compileClient(fullParams, clientBinaryPath)
+				else:
+					clientBinaryDummy = open(clientBinaryPath, 'w')
+					clientBinaryDummy.close()
 		os.chdir(mainExpDir)
 
 	def _compileClient(self, params, outPath):
