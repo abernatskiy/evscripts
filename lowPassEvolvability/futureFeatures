@@ -1,4 +1,4 @@
-Fix off-by-one at LinLogGrid
+Replace the ugly additional parameter treatment in grid.py
 Submit jobs not at once, but as the other jobs are getting completed.
 Wait on queue
 Dummies for
