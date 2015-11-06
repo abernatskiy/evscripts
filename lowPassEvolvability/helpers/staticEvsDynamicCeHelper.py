@@ -33,7 +33,8 @@ class staticEvsDynamicCeHelper(Helper):
 			if not fcond.has_key('randomSeedLibraryPath'):
 				raise ValueError('randomSeedLibraryPath must be specified to realize multiple runs')
 			else:
-				for seed in _randSeedList(fcond['randomSeedLibraryPath'], maxIterations=fcond['noOfRuns']):
+				randSeedLibraryPath = os.path.join(self.routes.evscriptsHome, 'seedFiles', 'randints' + str(int(fcond['randomSeedLibraryPath'])) + '.dat') #FIXME
+				for seed in _randSeedList(randSeedLibraryPath, maxIterations=int(fcond['noOfRuns'])):
 					self._runServer(fcond, seed)
 		else:
 			if not fcond.has_key('randomSeed'):
