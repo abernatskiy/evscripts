@@ -8,6 +8,18 @@ from time import sleep
 
 from helper import Helper
 
+def _randSeedList(randSeedPath, maxIterations=None):
+	with open(randSeedPath, 'r') as randSeedFile:
+		randSeedStr = randSeedFile.read()
+	randSeeds = map(int, randSeedStr.split())
+	if maxIterations:
+		if len(randSeeds) < maxIterations:
+			raise ValueError('Random seed library is too small to perform the experiment: ' + str(maxIterations) + 'values requested, ' + str(len(randSeeds)) + ' available at ' + randSeedPath)
+		else:
+			return randSeeds[:maxIterations]
+	else:
+		return randSeeds
+
 class staticEvsDynamicCeHelper(Helper):
 	def __init__(self, argv):
 		super(staticEvsDynamicCeHelper, self).__init__(argv)
@@ -17,7 +29,17 @@ class staticEvsDynamicCeHelper(Helper):
 		super(staticEvsDynamicCeHelper, self).runGroup(fcond)
 		self._makeFIFOs()
 		self._spawnClient(fcond)
-		self._runServer(fcond)
+		if fcond.has_key('noOfRuns'):
+			if not fcond.has_key('randomSeedLibraryPath'):
+				raise ValueError('randomSeedLibraryPath must be specified to realize multiple runs')
+			else:
+				for seed in _randSeedList(fcond['randomSeedLibraryPath'], maxIterations=fcond['noOfRuns']):
+					self._runServer(fcond, seed)
+		else:
+			if not fcond.has_key('randomSeed'):
+				raise ValueError('randomSeed must be specified for single-run experiments')
+			else:
+				self._runServer(fcond, int(fcond['randomSeed']))
 		self._killClient()
 		self._ensureProcessesEnd()
 		self._removeFIFOs()
@@ -36,9 +58,9 @@ class staticEvsDynamicCeHelper(Helper):
 		self._makeGroupNote('Starting the client: ' + subprocess.list2cmdline(cmdList) + ' (at ' + os.getcwd() + ')')
 		self.clientProc = subprocess.Popen(cmdList)
 
-	def _runServer(self, fcond):
+	def _runServer(self, fcond, randSeed):
 		configPath = self._getEvsConfig(fcond)
-		cmdList = [sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, str(int(fcond['randomSeed'])), configPath]
+		cmdList = [sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, str(randSeed), configPath]
 		self._makeGroupNote('Executing the server: ' + subprocess.list2cmdline(cmdList) + ' (at ' + os.getcwd() + ')')
 		subprocess.check_call(cmdList)
 

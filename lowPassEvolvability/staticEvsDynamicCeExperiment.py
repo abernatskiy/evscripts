@@ -25,16 +25,13 @@ def _dictionary2CeGccOptions(dict):
 										'withOcclusion': 'WITH_OCCLUSION',
 										'withGraphics': 'WITH_GRAPHICS',
 										'withScreenshots': 'WITH_SCREENSHOTS' }
-	ignoreParams = ['randomSeed']
 	def paramString(paramName, dict):
 		if paramName in numericalParams:
 			return '-D' + numericalParams[paramName] + '=' + str(dict[paramName])
 		elif paramName in booleanParams:
 			return '-D' + booleanParams[paramName] if dict[paramName] != 0.0 else ''
-		elif paramName in ignoreParams:
-			return ''
 		else:
-			raise ValueError('Unrecognized parameter ' + paramName)
+			return ''
 	return ' '.join([ paramString(paramName, dict) for paramName in dict.keys() ])
 
 class staticEvsDynamicCeExperiment(Experiment):
