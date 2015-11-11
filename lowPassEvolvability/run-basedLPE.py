@@ -61,11 +61,15 @@ class runLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'logBestIndividual = yes\n'
 						'genStopAfter = 10\n')
 
-if __name__ == '__main__':
-	e = runLPEExperiment('runLPE201511106',
+def initializeExperiment():
+	exp = runLPEExperiment('runLPE201511106',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
 				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 16.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 2, 2]]),
 				pointsPerJob=1,
 #				dryRun=True,
 				expectedWallClockTime='03:00:00')
+	return exp
+
+if __name__ == '__main__':
+	e = initializeExperiment()
 	e.run()
