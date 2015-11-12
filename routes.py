@@ -1,7 +1,7 @@
 from os.path import expanduser, join
 
 home = expanduser('~')
-evscriptsHome = join(home, 'evscripts', 'lowPassEvolvability')
+evscriptsHome = join(home, 'evscripts')
 
 envHome = join(evscriptsHome, 'env')
 sysEnv = join(envHome, 'sysGentoo.py')
