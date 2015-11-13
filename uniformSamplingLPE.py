@@ -74,15 +74,15 @@ class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'length = 60\n'
 						'\n'
 						'[evolParams]\n'
-						'populationSize = 100000\n'
+						'populationSize = 10\n'
 						'logPopulation = yes\n')
 
 def initializeExperiment():
-	return uniformSamplingLPEExperiment('uniformSamplingLPE201511103',
+	return uniformSamplingLPEExperiment('uniformSamplingLPE20151113',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
 				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 16.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 2, 2]]),
 				pointsPerJob=1,
-				expectedWallClockTime='03:00:00')
+				expectedWallClockTime='00:10:00')
 
 if __name__ == '__main__':
 	e = initializeExperiment()

@@ -64,10 +64,11 @@ class runLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 def initializeExperiment():
 	exp = runLPEExperiment('runLPE201511106',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
-				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 16.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 2, 2]]),
-				pointsPerJob=1,
+#				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 16.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 2, 2]]),
+				grid=shared.grid.LogLinGrid([['sensorGain', 'log', 16.0, 4.0, 1, 1], ['forceGain', 'log', 0.8, 4.0, 0, 0]]),
+				pointsPerJob=2,
 #				dryRun=True,
-				expectedWallClockTime='03:00:00')
+				expectedWallClockTime='00:30:00')
 	return exp
 
 if __name__ == '__main__':

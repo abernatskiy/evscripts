@@ -28,7 +28,7 @@ class Helper(object):
 
 		sys.path.append(self.evscriptsHome)
 		self.routes = imp.load_source('routes', os.path.join(self.evscriptsHome, 'routes.py'))
-		self.parentScript = imp.load_source('parent', argv[3])
+		self.parentScript = imp.load_source('parent', os.path.join(self.evscriptsHome, argv[3]))
 		self.translators = imp.load_source('translators', os.path.join(self.evscriptsHome, 'shared', 'translators.py')) # for filesystem names ONLY
 
 		experiment = self.parentScript.initializeExperiment()

@@ -149,7 +149,7 @@ class Experiment(object):
 			'-v', 'PYTHON=' + sys.executable +
 						',PYTHON_HELPER=' + str(routes.pbsPythonHelper) +
 						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
-						',PARENT_SCRIPT=' + os.abspath(sys.argv[0]),
+						',PARENT_SCRIPT=' + os.path.basename(sys.argv[0]),
 			routes.pbsBashHelper]
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:

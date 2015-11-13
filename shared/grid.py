@@ -4,7 +4,8 @@ import translators
 
 # FIXME please! It hurts!
 #additionalParams = {'randomSeed': 9001.0}
-additionalParams = {'noOfRuns':100.0, 'randomSeedLibraryPath': 1416551751.0}
+#additionalParams = {'noOfRuns':100.0, 'randomSeedLibraryPath': 1416551751.0}
+additionalParams = {'noOfRuns':1.0, 'randomSeedLibraryPath': 1416551751.0}
 
 class Grid(object):
 	'''Class which allows iteration over arbitrarily dimensional parameter grids.
