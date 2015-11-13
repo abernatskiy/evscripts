@@ -147,11 +147,9 @@ class Experiment(object):
 			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-t', str(beginID) + '-' + str(endID),
 			'-v', 'PYTHON=' + sys.executable +
-           ',PYTHON_HELPER=' + str(routes.pbsPythonHelper) +
-           ',EVSCRIPTS_HOME=' + routes.evscriptsHome +
-           ',CONDITIONS=' + self._getConditionsString() +
-           ',GRID=' + self._getGridString() +
-           ',POINTS_PER_JOB=' + str(self.pointsPerJob),
+						',PYTHON_HELPER=' + str(routes.pbsPythonHelper) +
+						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
+						',PARENT_SCRIPT=' + os.abspath(sys.argv[0]),
 			routes.pbsBashHelper]
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
@@ -260,10 +258,11 @@ class Experiment(object):
 			branchOut = subprocess.check_output([sysEnv.git, 'branch'])
 			branchStr = filter(lambda str: str.find('* ') == 0, branchOut.split('\n'))[0].replace('* ', '')
 			diffStr = subprocess.check_output([sysEnv.git, 'diff'])
-			file.write(repoName + ' path: ' + repoPath + '\n')
-			file.write(repoName + ' branch: ' + branchStr + '\n')
-			file.write(repoName + ' version: ' + versionStr + '\n')
-			file.write('git diff for ' + repoName + ':\n' + diffStr + '\n-------------------------\n')
+			file.write(repoName + ' path: ' + repoPath + '\n' +
+									repoName + ' branch: ' + branchStr + '\n' +
+									repoName + ' version: ' + versionStr + '\n' +
+									'git diff for ' + repoName + ':\n' + diffStr +'\n' +
+									'-------------------------\n')
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
 			pathVerRecord(verFile, 'evscripts', routes.evscriptsHome)

@@ -22,15 +22,19 @@ class Helper(object):
          argv[0] - script name (ignored)
          argv[1] - path to the evscripts directory
          argv[2] - job ID
-         argv[3] - conditions string
-         argv[4] - grid string
-         argv[5] - number of points per job
+         argv[3] - parent script
 		'''
 		self.evscriptsHome = argv[1]
-		self.translators = imp.load_source('translators', os.path.join(self.evscriptsHome, 'shared', 'translators.py'))
+
+		sys.path.append(self.evscriptsHome)
 		self.routes = imp.load_source('routes', os.path.join(self.evscriptsHome, 'routes.py'))
-		self._getGridPoints(argv[4], int(argv[5]), int(argv[2]))
-		self._getConditionsFromString(argv[3])
+		self.parentScript = imp.load_source('parent', argv[3])
+		self.translators = imp.load_source('translators', os.path.join(self.evscriptsHome, 'shared', 'translators.py')) # for filesystem names ONLY
+
+		experiment = self.parentScript.initializeExperiment()
+		jobID = int(argv[2])
+		self.gridPoints = self._getGridPoints(experiment.grid, experiment.pointsPerJob, jobID)
+		self.experimentalConditions = experiment.experimentalConditions
 		self.rootDir = os.getcwd()
 
 	def __repr__(self):
@@ -42,21 +46,16 @@ class Helper(object):
 	def __str__(self):
 		return repr(self)
 
-	def _getGridPoints(self, gridString, pointsPerJob, jobID):
-		self.gridPoints = []
-		if gridString == 'None':
-			self.gridPoints.append({})
+	def _getGridPoints(self, grid, pointsPerJob, jobID):
+		gridPoints = []
+		if grid is None:
+			gridPoints.append({})
 		else:
-			grid = imp.load_source('grid', os.path.join(self.evscriptsHome, 'shared', 'grid.py'))
-			globalGrid = grid.Grid([], [])
-			globalGrid.fromCompactString(gridString)
 			curGridPointID = jobID*pointsPerJob
 			for i in xrange(pointsPerJob):
-				if curGridPointID+i < len(globalGrid):
-					self.gridPoints.append(globalGrid[curGridPointID + i])
-
-	def _getConditionsFromString(self, conditionsString):
-		self.experimentalConditions = self.translators.compactString2ListOfDictionaries(conditionsString)
+				if curGridPointID+i < len(grid):
+					gridPoints.append(grid[curGridPointID + i])
+		return gridPoints
 
 	def runExperiments(self):
 		for gridPoint in self.gridPoints:
