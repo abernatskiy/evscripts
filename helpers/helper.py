@@ -10,7 +10,7 @@ from abc import ABCMeta, abstractmethod
 def _getTimeString(tsecs):
 	m, s = divmod(tsecs, 60)
 	h, m = divmod(m, 60)
-	print "%d:%02d:%02d" % (h, m, s)
+	return '%d:%02d:%02d' % (h, m, s)
 
 class Helper(object):
 	'''Abstract base class for Helper objects which handle execution of
@@ -76,7 +76,7 @@ class Helper(object):
 				fullCond = copy(condition)
 				fullCond.update(gridPoint)
 
-				self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
+				self._makeGroupNote('Parameters of the run conducted here: ' + str(fullCond))
 				et = os.times()[4]
 
 				self.runGroup(fullCond)
