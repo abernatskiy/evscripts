@@ -6,7 +6,7 @@ import subprocess
 
 import staticEvsDynamicCeExperiment as sedce
 from shared.grid import LogGrid,Grid1d
-from copy import copy
+from uniformSampligLPE import baseGrid
 
 class runLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):
@@ -28,20 +28,14 @@ class runLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'genStopAfter = 10\n')
 
 def initializeExperiment():
-	sgGrid = LogGrid('sensorGain', 16, 4, 1, 1)
-	fgGrid = LogGrid('forceGain', 0.8, 4, 2, 2)
-	paramGrid = sgGrid*fgGrid
-
-	rsGrid = Grid1d('randomSeeds', [[9001, 9002, 9003]]*len(paramGrid))
-	paramGrid += rsGrid
-
-	exp = runLPEExperiment('runLPE20151115',
-				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
-				grid=paramGrid,
-				pointsPerJob=2,
-#				dryRun=True,
-				expectedWallClockTime='00:30:00')
-	return exp
+	grid = baseGrid()
+	grid += Grid1d('randomSeeds', [[9001, 9002, 9003]]*len(grid))
+	return runLPEExperiment('runLPE20151115',
+					[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
+					grid=grid,
+					pointsPerJob=2,
+#					dryRun=True,
+					expectedWallClockTime='00:30:00')
 
 if __name__ == '__main__':
 	e = initializeExperiment()

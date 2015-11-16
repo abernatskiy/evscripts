@@ -62,17 +62,17 @@ class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'populationSize = 1000\n'
 						'logPopulation = yes\n')
 
-def initializeExperiment():
+def baseGrid():
 	sgGrid = LogGrid('sensorGain', 16, 4, 1, 1)
 	fgGrid = LogGrid('forceGain', 0.8, 4, 2, 2)
-	paramGrid = sgGrid*fgGrid
+	return sgGrid*fgGrid
 
-	rsGrid = Grid1d('randomSeeds', [9001]*len(paramGrid))
-	paramGrid += rsGrid
-
+def initializeExperiment():
+	grid = baseGrid()
+	grid += Grid1d('randomSeeds', [9001]*len(grid))
 	return uniformSamplingLPEExperiment('uniformSamplingLPE20151116',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
-				grid=paramGrid,
+				grid=grid,
 				pointsPerJob=2,
 				expectedWallClockTime='00:30:00')
 
