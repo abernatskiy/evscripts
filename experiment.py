@@ -73,7 +73,9 @@ class Experiment(object):
          Available as self.dryRun.
 		'''
 		self.name = name
+		self._checkFSNameUniqueness(experimentalConditions)
 		self.experimentalConditions = experimentalConditions
+		self._checkFSNameUniqueness(grid)
 		self.grid = grid
 		self.pointsPerJob = pointsPerJob
 		self.queue = pbsEnv.defaultQueue if queue is None else queue
@@ -81,6 +83,12 @@ class Experiment(object):
 		self._resultsDir = os.path.join(os.getcwd(), name, 'results')
 		self._resultsFiles = {}
 		self.dryRun = dryRun
+
+	def _checkFSNameUniqueness(self, iterable):
+		if iterable is not None:
+			dirNames = map(shared.translators.dictionary2FilesystemName, iterable)
+			if not len(dirNames) == len(set(dirNames)):
+				raise ValueError('Dirnames produces by conditions are not unique:\n' + '\n'.join(dirNames))
 
 	def run(self):
 		self.prepareEnv()

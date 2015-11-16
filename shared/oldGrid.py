@@ -2,11 +2,6 @@ import itertools
 
 import translators
 
-# FIXME please! It hurts!
-#additionalParams = {'randomSeed': 9001.0}
-#additionalParams = {'noOfRuns':100.0, 'randomSeedLibraryPath': 1416551751.0}
-additionalParams = {'noOfRuns':1.0, 'randomSeedLibraryPath': 1416551751.0}
-
 class Grid(object):
 	'''Class which allows iteration over arbitrarily dimensional parameter grids.
      The set of grid points is defined to be a direct product of 1d grids for
@@ -36,14 +31,12 @@ class Grid(object):
 	def __iter__(self):
 		for gridvec in self.gridvals:
 			pointDict = {self.paramsNames[i]: gridvec[i] for i in xrange(self.dim)}
-			pointDict.update(additionalParams) # FIXME
 			yield pointDict
 
 	def __getitem__(self, j):
 		if j >= len(self.gridvals):
 			raise IndexError('grid index out of range')
 		item = {self.paramsNames[i]: self.gridvals[j][i] for i in xrange(self.dim)}
-		item.update(additionalParams) # FIXME
 		return item
 
 	def toCompactString(self):

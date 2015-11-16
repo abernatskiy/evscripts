@@ -8,18 +8,6 @@ from time import sleep
 
 from helper import Helper
 
-def _randSeedList(randSeedPath, maxIterations=None):
-	with open(randSeedPath, 'r') as randSeedFile:
-		randSeedStr = randSeedFile.read()
-	randSeeds = map(int, randSeedStr.split())
-	if maxIterations:
-		if len(randSeeds) < maxIterations:
-			raise ValueError('Random seed library is too small to perform the experiment: ' + str(maxIterations) + 'values requested, ' + str(len(randSeeds)) + ' available at ' + randSeedPath)
-		else:
-			return randSeeds[:maxIterations]
-	else:
-		return randSeeds
-
 class staticEvsDynamicCeHelper(Helper):
 	def __init__(self, argv):
 		super(staticEvsDynamicCeHelper, self).__init__(argv)
@@ -29,18 +17,17 @@ class staticEvsDynamicCeHelper(Helper):
 		super(staticEvsDynamicCeHelper, self).runGroup(fcond)
 		self._makeFIFOs()
 		self._spawnClient(fcond)
-		if fcond.has_key('noOfRuns'):
-			if not fcond.has_key('randomSeedLibraryPath'):
-				raise ValueError('randomSeedLibraryPath must be specified to realize multiple runs')
-			else:
-				randSeedLibraryPath = os.path.join(self.routes.evscriptsHome, 'seedFiles', 'randints' + str(int(fcond['randomSeedLibraryPath'])) + '.dat') #FIXME
-				for seed in _randSeedList(randSeedLibraryPath, maxIterations=int(fcond['noOfRuns'])):
+		if fcond.has_key('randomSeeds'):
+			seeds = fcond['randomSeeds']
+			if type(seeds) == int:
+				self._runServer(fcond, seeds)
+			elif type(seeds) == list and all([type(seed) == int for seed in seeds]):
+				for seed in seeds:
 					self._runServer(fcond, seed)
-		else:
-			if not fcond.has_key('randomSeed'):
-				raise ValueError('randomSeed must be specified for single-run experiments')
 			else:
-				self._runServer(fcond, int(fcond['randomSeed']))
+				raise ValueError('Wrong specification of randomSeeds, must be an integer or a list of integers (got ' + type(seeds) + ')')
+		else:
+			raise ValueError('randomSeeds not specified in conditions. Add it and make it either an integer or a list of integers')
 		self._killClient()
 		self._ensureProcessesEnd()
 		self._removeFIFOs()
