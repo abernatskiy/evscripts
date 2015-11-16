@@ -98,7 +98,7 @@ class ProductOfGrids(Grid):
 				yield _sumOfDicts(firstPoint, secondPoint)
 	def __getitem__(self, i):
 		super(ProductOfGrids, self).__getitem__(i)
-		firstPoint = self.first[i / len(self.first)]
+		firstPoint = self.first[i / len(self.second)]
 		secondPoint = self.second[i % len(self.second)]
 		return _sumOfDicts(firstPoint, secondPoint)
 	def paramNames(self):
