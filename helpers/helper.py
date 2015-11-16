@@ -7,6 +7,11 @@ from copy import copy
 import imp
 from abc import ABCMeta, abstractmethod
 
+def _getTimeString(tsecs):
+	m, s = divmod(tsecs, 60)
+	h, m = divmod(m, 60)
+	print "%d:%02d:%02d" % (h, m, s)
+
 class Helper(object):
 	'''Abstract base class for Helper objects which handle execution of
      the final experiment processes at cluster nodes.
@@ -70,15 +75,21 @@ class Helper(object):
 
 				fullCond = copy(condition)
 				fullCond.update(gridPoint)
+
+				self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
+				et = os.times()[4]
+
 				self.runGroup(fullCond)
 
+				et = os.times()[4] - et
+				self._makeGroupNote('Run completed in ' + str(et) + ' seconds (' + _getTimeString(et) + ' hours)')
 				os.chdir('..')
 
 			os.chdir('..')
 
 	@abstractmethod
 	def runGroup(self, fcond):
-		self._makeGroupNote('Parameters of the run conducted here: ' + str(fcond))
+		pass
 
 	def _makeGroupNote(self, str):
 		f = open('groupNotes.txt', 'a')

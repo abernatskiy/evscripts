@@ -14,7 +14,6 @@ class staticEvsDynamicCeHelper(Helper):
 		self.sysEnv = imp.load_source('sysEnv', self.routes.sysEnv)
 
 	def runGroup(self, fcond):
-		super(staticEvsDynamicCeHelper, self).runGroup(fcond)
 		self._makeFIFOs()
 		self._spawnClient(fcond)
 		if fcond.has_key('randomSeeds'):

@@ -41,6 +41,8 @@ class Grid(object):
 		listOfStrs = map(str, list(self))
 		outStr = '[' + ',\n '.join(listOfStrs) + ']'
 		return outStr
+	def __str__(self):
+		return str(list(self))
 	def __add__(self, other):
 		return SumOfGrids(self, other)
 	def __mul__(self, other):
