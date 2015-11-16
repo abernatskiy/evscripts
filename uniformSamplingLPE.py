@@ -5,11 +5,11 @@ import numpy as np
 import subprocess
 
 import staticEvsDynamicCeExperiment as sedce
-import shared.grid
-from copy import copy
+from shared.grid import LogGrid,Grid1d
 
 import tools.fileProcessors as tfp
 import tools.stats as ts
+import tools.algorithms as ta
 
 def extractFitness(filename):
 	return np.array(tfp.extractColumnFromEVSLogs(filename, 1))
@@ -17,15 +17,14 @@ def extractFitness(filename):
 class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):
 		def processDir(gridPoint, condPoint, self):
-			fileNameBase = 'population' + str(int(gridPoint['randomSeed'])) + '_gen'
+			fileNameBase = 'population' + str(int(gridPoint['randomSeeds'])) + '_gen'
 			files = [ fileNameBase + '0.log', fileNameBase + '1.log' ]
 			fitness = [ extractFitness(file) for file in files ]
-
-			fullCond = copy(gridPoint)
-			fullCond.update(condPoint)
+			fullCond = ta.sumOfDicts(gridPoint, condPoint)
 
 			self._recordEvolvabilityStats(fullCond, fitness)
 			self._recordRandomSearchStats(fullCond, fitness)
+
 		self.executeAtEveryConditionsDir(processDir, (self,), {})
 
 	def _recordRandomSearchStats(self, fullCond, fitness):
@@ -60,7 +59,7 @@ class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'length = 60\n'
 						'\n'
 						'[evolParams]\n'
-						'populationSize = 10\n'
+						'populationSize = 1000\n'
 						'logPopulation = yes\n')
 
 def initializeExperiment():
@@ -75,7 +74,7 @@ def initializeExperiment():
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
 				grid=paramGrid,
 				pointsPerJob=2,
-				expectedWallClockTime='00:10:00')
+				expectedWallClockTime='00:30:00')
 
 if __name__ == '__main__':
 	e = initializeExperiment()

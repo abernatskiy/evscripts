@@ -7,7 +7,7 @@ def stderr(samples):
 
 def chunkedMaxStats(fitness, numChunks):
 	if len(fitness[0]) % numChunks != 0:
-		raise ValueError('Number of fitness records (' + str(len(fitness)) + ')  must be divisible by the number of chunks (' + str(numChunks) + ')')
+		raise ValueError('Number of fitness records (' + str(len(fitness[0])) + ')  must be divisible by the number of chunks (' + str(numChunks) + ')')
 	lenChunk = len(fitness[0])/numChunks
 	fitChunks = algorithms.chunks(fitness[0], lenChunk)
 	fitMax = map(np.max, fitChunks)
