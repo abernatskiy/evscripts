@@ -1,21 +1,18 @@
-Replace the ugly additional parameter treatment in grid.py
+AFPO experiment for run-based LPE normalization
+Treat results in such a way that they are not broken by the non-orderedness of the dictionaries
+Graphical tools
+SQlite-based results storage
+qsub dummy
 Submit jobs not at once, but as the other jobs are getting completed.
-Wait on queue
-Dummies for
-  qsub
-  helper
-Transfer client compilation to Helper
-Preprocessing the logs
-Random seed treatment
-  o0: grids which support elementwise list multiplication instead of direct multiplication
-  o1: introduce the concept of additional parameters to the code starting with experiment.py and apply it to random seeds
-	o2: include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
-At staticEvsDynamicCeHelper, do something about the client and server processes other than sleeping on them
+Preprocessing in the Helper:
+	* transfer client compilation to Helper
+Postprocessing in the Helper
 Check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does.
 Continue a stalled experiment.
-Fix the behavior of subprocess somehow and switch from :? to ,;
 Cleaner make call at staticEvsDynamicCeExperiment._compileClient()
 class for error- (and possibly also argument difference-) aware results
-Timing the helpers
-OrderedDicts for result
+
 Replace imp with importlib where possible
+Random seed treatment
+	* include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
+At staticEvsDynamicCeHelper, do something about the client and server processes other than sleeping on them
