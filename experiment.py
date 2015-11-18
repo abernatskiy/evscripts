@@ -220,43 +220,36 @@ class Experiment(object):
        If the function is called with a different set of parameter/result
        names than the one used in the intial call, ValueError is raised.
        For best results, keep the keys short (under 20 symbols).'''
+		sortingFunction = sorted
 		numDecimals = 13
 		numReprWidth = numDecimals + 7
-
-		def addResultFileHeader(file, params, results):
-			file.write('#')
-			initialShift = 2
-			for paramName in params.keys():
-				paramNameStr = paramName.ljust(numReprWidth - initialShift, ' ')
+		def writeRowOfKeys(file, keys, initialShift=0):
+			for name in keys:
+				adjStr = name.ljust(numReprWidth - initialShift, ' ')
+				file.write(' ' + adjStr)
 				initialShift = 0
-				file.write(' ' + paramNameStr)
-			for resultName in results.keys():
-				resultNameStr = resultName.ljust(numReprWidth, ' ')
-				file.write(' ' + resultNameStr)
-			resultsFile.write('\n')
-		def addResultLine(file, params, results):
-			leadingSpaces = 0
-			for paramVal in params.values():
-				paramValStr = ( '%.' + str(numDecimals) + 'e' ) % paramVal
-				paramValStr = paramValStr.rjust(numReprWidth, ' ')
-				file.write(' '*leadingSpaces + paramValStr)
+		def writeRowOfVals(file, keys, dict, leadingSpaces=1):
+			for name in keys:
+				valStr = ( '%.' + str(numDecimals) + 'e' ) % dict[name]
+				valStr = valStr.rjust(numReprWidth, ' ')
+				file.write(' '*leadingSpaces + valStr)
 				leadingSpaces = 1
-			for resultVal in results.values():
-				resultValStr = ( '%.' + str(numDecimals) + 'e' ) % resultVal
-				resultValStr = resultValStr.rjust(numReprWidth, ' ')
-				file.write(' ' + resultValStr)
-			file.write('\n')
-
-		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as resultsFile:
+		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as file:
 			if self._resultsFiles.has_key(resultsFileName):
 				origParamNames, origResultNames = self._resultsFiles[resultsFileName]
-				if paramsDict.keys() != origParamNames or resultsDict.keys() != origResultNames:
+				if set(paramsDict.keys()) != set(origParamNames) or set(resultsDict.keys()) != set(origResultNames):
 					print 'Reprs: orig param ' + repr(origParamsDict) + ' new param ' + repr(paramsDict) + ' orig results ' + repr(origResultsDict) + ' new results ' + repr(resultsDict) + '\n'
 					raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
 			else:
-				addResultFileHeader(resultsFile, paramsDict, resultsDict)
-				self._resultsFiles[resultsFileName] = (paramsDict.keys(), resultsDict.keys())
-			addResultLine(resultsFile, paramsDict, resultsDict)
+				origParamNames, origResultNames = sortingFunction(paramsDict.keys()), sortingFunction(resultsDict.keys())
+				self._resultsFiles[resultsFileName] = (origParamNames, origResultNames)
+				file.write('#')
+				writeRowOfKeys(file, origParamNames, initialShift=2)
+				writeRowOfKeys(file, origResultNames)
+				file.write('\n')
+			writeRowOfVals(file, origParamNames, paramsDict, leadingSpaces=0)
+			writeRowOfVals(file, origResultNames, resultsDict)
+			file.write('\n')
 
 	def _recordVersions(self):
 		def pathVerRecord(file, repoName, repoPath):

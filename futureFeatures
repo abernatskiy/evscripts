@@ -1,7 +1,6 @@
 AFPO experiment for run-based LPE normalization
-Treat results in such a way that they are not broken by the non-orderedness of the dictionaries
 Graphical tools
-SQlite-based results storage
+sqlalchemy-based results storage
 qsub dummy
 Submit jobs not at once, but as the other jobs are getting completed.
 Preprocessing in the Helper:
