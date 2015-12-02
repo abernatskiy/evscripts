@@ -45,7 +45,7 @@ def initializeExperiment():
 					grid=grid,
 					expectedWallClockTime='29:00:00',
 					queue='ibq',
-					repeat=3)
+					repeats=3)
 
 if __name__ == '__main__':
 	e = initializeExperiment()
