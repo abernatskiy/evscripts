@@ -16,21 +16,25 @@ class staticEvsDynamicCeHelper(Helper):
 	def runGroup(self, fcond):
 		self._makeFIFOs()
 		self._spawnClient(fcond)
-		if fcond.has_key('randomSeeds'):
-			seeds = fcond['randomSeeds']
-			if type(seeds) == int:
-				self._runServer(fcond, seeds)
-			elif type(seeds) == list and all([type(seed) == int for seed in seeds]):
-				for seed in seeds:
-					self._runServer(fcond, seed)
-			else:
-				raise ValueError('Wrong specification of randomSeeds, must be an integer or a list of integers (got ' + type(seeds) + ')')
-		else:
-			raise ValueError('randomSeeds not specified in conditions. Add it and make it either an integer or a list of integers')
+		for seed in self._listSeeds(fcond):
+			self._runServer(fcond, seeds)
 		self._killClient()
 		self._ensureProcessesEnd()
 		self._removeFIFOs()
 		self._preprocessResults(fcond)
+
+	def _listSeeds(self, fcond):
+		outSeeds = []
+		if fcond.has_key('randomSeeds'):
+			seeds = fcond['randomSeeds']
+			if type(seeds) == int:
+				return [seeds]
+			elif type(seeds) == list and all([type(seed) == int for seed in seeds]):
+				return seeds
+			else:
+				raise ValueError('Wrong specification of randomSeeds, must be an integer or a list of integers (got ' + type(seeds) + ')')
+		else:
+			raise ValueError('randomSeeds not specified in conditions. Add it and make it either an integer or a list of integers')
 
 	def _makeFIFOs(self):
 		subprocess.call([self.sysEnv.mkfifo, 'genes'])
@@ -46,8 +50,11 @@ class staticEvsDynamicCeHelper(Helper):
 		self.clientProc = subprocess.Popen(cmdList)
 
 	def _runServer(self, fcond, randSeed):
-		configPath = self._getEvsConfig(fcond)
-		cmdList = [sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, str(randSeed), configPath]
+		if self.repeat == 0:
+			configPath = self._getEvsConfig(fcond)
+			cmdList = [sys.executable, self.routes.evsExecutable, self.evalsPipe, self.genesPipe, str(randSeed), configPath]
+		else:
+			cmdList = [sys.executable, self.routes.evsResume]
 		self._makeGroupNote('Executing the server: ' + subprocess.list2cmdline(cmdList) + ' (at ' + os.getcwd() + ')')
 		subprocess.check_call(cmdList)
 

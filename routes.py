@@ -13,4 +13,5 @@ pbsPythonHelper = join(helpersHome, 'staticEvsDynamicCeHelper.py')
 
 clientHome = join(home, 'cylindersEvasion')
 evsHome = join(home, 'evs')
-evsExecutable = join(evsHome, 'mainConfig.py')
+evsExecutable = join(evsHome, 'evsServer.py')
+evsResume = join(evsHome, 'evsContinue.py')

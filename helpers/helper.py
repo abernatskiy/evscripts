@@ -37,30 +37,36 @@ class Helper(object):
 		self.translators = imp.load_source('translators', os.path.join(self.evscriptsHome, 'shared', 'translators.py')) # for filesystem names ONLY
 
 		experiment = self.parentScript.initializeExperiment()
+
 		jobID = int(argv[2])
-		self.gridPoints = self._getGridPoints(experiment.grid, experiment.pointsPerJob, jobID)
-		self.experimentalConditions = experiment.experimentalConditions
+		self.repeat, self.gridPoints, self.experimentalConditions = self._getConditions(experiment, jobID)
 		self.rootDir = os.getcwd()
 
 	def __repr__(self):
 		return( 'Helper: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
 						'        gridPoints = ' + str(self.gridPoints) + '\n' +
 						'        experimentalConditions = ' + str(self.experimentalConditions) + '\n' +
-						'        rootDir = ' + self.rootDir + '\n' )
+						'        rootDir = ' + self.rootDir + '\n' +
+						'        repeat = ' + str(self.repeat) + '\n')
 
 	def __str__(self):
 		return repr(self)
 
-	def _getGridPoints(self, grid, pointsPerJob, jobID):
-		gridPoints = []
+	def _getConditions(self, experiment, jobID):
+		grid = experiment.grid
+		expConds = experiment.experimentalConditions
 		if grid is None:
-			gridPoints.append({})
+			return (jobID, [{}], expConds)
 		else:
-			curGridPointID = jobID*pointsPerJob
-			for i in xrange(pointsPerJob):
-				if curGridPointID+i < len(grid):
+			ppj = experiment.pointsPerJob
+			gridLen = len(grid)
+			jobsPerGrid = (gridLen + ppj - 1) / ppj
+			curGridPointID = (jobID % jobsPerGrid)*ppj
+			gridPoints = []
+			for i in xrange(ppj):
+				if curGridPointID+i < gridLen:
 					gridPoints.append(grid[curGridPointID + i])
-		return gridPoints
+			return (jobID/jobsPerGrid, gridPoints, expConds)
 
 	def runExperiments(self):
 		for gridPoint in self.gridPoints:

@@ -37,7 +37,7 @@ class Experiment(object):
 	'''
 	__metaclass__ = ABCMeta
 
-	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None, dryRun=False):
+	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None, dryRun=False, repeats=1):
 		'''Arguments:
        name is the name of the experiment AND of its
          working directory.
@@ -83,6 +83,9 @@ class Experiment(object):
 		self._resultsDir = os.path.join(os.getcwd(), name, 'results')
 		self._resultsFiles = {}
 		self.dryRun = dryRun
+		self.repeats = repeats
+		if repeats != 1 and pointsPerJob != 1:
+			raise ValueError('Either number of repeats or number of points per job must be equal to 1')
 
 	def _checkFSNameUniqueness(self, iterable):
 		if iterable is not None:
@@ -92,8 +95,10 @@ class Experiment(object):
 
 	def run(self):
 		self.prepareEnv()
-		self._submitJobs(0, self._numJobs()-1)
-		self._waitForCompletion()
+		numJobs = self._numJobs()
+		for i in xrange(self.repeats):
+			self._submitJobs(i*numJobs, (i+1)*numJobs-1)
+			self._waitForCompletion()
 		self.processResults()
 		self.exitWorkDir() # entered it at prepareEnv()
 
@@ -162,12 +167,6 @@ class Experiment(object):
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
 			subprocess.check_call(cmdList)
-
-	def _getGridString(self):
-		if self.grid is None:
-			return 'None'
-		else:
-			return self.grid.toCompactString()
 
 	def _getConditionsString(self):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
