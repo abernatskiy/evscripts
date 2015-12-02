@@ -40,7 +40,7 @@ def initializeExperiment():
 	grid = afpoBaseGrid()
 	randSeedsList = tfp.randSeedList(os.path.join(routes.evscriptsHome, 'seedFiles', 'randints1416551751.dat'), size=200)
 	grid *= Grid1d('randomSeeds', randSeedsList[0:10])
-	return afpoForRunBasedLPEExperiment('afpoForRunBasedLPEExperiment20151202',
+	return afpoForRunBasedLPEExperiment('afpoForRunBasedLPE20151202',
 					[{}],
 					grid=grid,
 					expectedWallClockTime='29:00:00',
