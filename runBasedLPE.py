@@ -6,7 +6,7 @@ import subprocess
 
 import staticEvsDynamicCeExperiment as sedce
 from shared.grid import LogGrid,Grid1d
-from uniformSampligLPE import baseGrid
+from uniformSamplingLPE import baseGrid
 
 class runLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):

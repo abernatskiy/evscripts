@@ -16,13 +16,10 @@ def extractColumnFromEVSLogs(path, field, dtype=float):
 def randSeedList(randSeedPath, size=None):
 	with open(randSeedPath, 'r') as randSeedFile:
 		randSeedStr = randSeedFile.read()
-	randSeeds = map(int, randSeedStr.split())
-	if maxIterations:
-		if len(randSeeds) < size:
+	if size:
+		if len(randSeedStr) < size:
 			raise ValueError('Random seed library is too small to perform the experiment: ' +
 												str(size) + 'values requested, ' +
-												str(len(randSeeds)) + ' available at ' + randSeedPath)
-		else:
-			return randSeeds[:maxIterations]
-	else:
-		return randSeeds
+												str(len(randSeedStr)) + ' available at ' + randSeedPath)
+		randSeedStr = randSeedStr[:size]
+	return map(int, randSeedStr.split())
