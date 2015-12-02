@@ -16,7 +16,7 @@ import tools.algorithms as ta
 def extractFitness(filename):
 	return np.array(tfp.extractColumnFromEVSLogs(filename, 1))
 
-class uniformSamplingLPEExperiment(sedce.staticEvsDynamicCeExperiment):
+class testExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):
 		def processDir(gridPoint, condPoint, self):
 			fileNameBase = 'population' + str(int(gridPoint['randomSeeds'])) + '_gen'
@@ -76,10 +76,11 @@ def baseGrid():
 def initializeExperiment():
 	grid = baseGrid()
 	grid += Grid1d('randomSeeds', [9001]*len(grid))
-	return uniformSamplingLPEExperiment('uniformSamplingLPE20151116',
+	return testExperiment('testExperiment20151202',
 				[{'linearDrag':0.0, 'angularDrag':0.0}, {'linearDrag':0.2, 'angularDrag':0.2}],
 				grid=grid,
 				pointsPerJob=1,
+				queue='shortq',
 				expectedWallClockTime='00:10:00',
 				repeats=2)
 

@@ -71,12 +71,14 @@ class Helper(object):
 	def runExperiments(self):
 		for gridPoint in self.gridPoints:
 			gpDirName = self.translators.dictionary2FilesystemName(gridPoint)
-			os.makedirs(gpDirName)
+			if not os.path.isdir(gpDirName):
+				os.makedirs(gpDirName)
 			os.chdir(gpDirName)
 
 			for condition in self.experimentalConditions:
 				condDirName = self.translators.dictionary2FilesystemName(condition)
-				os.makedirs(condDirName)
+				if not os.path.isdir(condDirName):
+					os.makedirs(condDirName)
 				os.chdir(condDirName)
 
 				fullCond = copy(condition)

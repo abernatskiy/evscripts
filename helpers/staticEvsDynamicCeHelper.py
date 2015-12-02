@@ -17,7 +17,7 @@ class staticEvsDynamicCeHelper(Helper):
 		self._makeFIFOs()
 		self._spawnClient(fcond)
 		for seed in self._listSeeds(fcond):
-			self._runServer(fcond, seeds)
+			self._runServer(fcond, seed)
 		self._killClient()
 		self._ensureProcessesEnd()
 		self._removeFIFOs()
