@@ -84,8 +84,11 @@ class Experiment(object):
 		self._resultsFiles = {}
 		self.dryRun = dryRun
 		self.repeats = repeats
-		if repeats != 1 and pointsPerJob != 1:
-			raise ValueError('Either number of repeats or number of points per job must be equal to 1')
+		if repeats != 1:
+			if pointsPerJob != 1:
+				raise ValueError('Either number of repeats or number of points per job must be equal to 1')
+			if len(self.experimentalConditions) != 1:
+				raise ValueError('Multiple experimental conditions do not work too well with repeats')
 
 	def _checkFSNameUniqueness(self, iterable):
 		if iterable is not None:
