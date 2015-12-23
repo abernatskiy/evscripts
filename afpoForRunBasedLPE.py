@@ -39,12 +39,15 @@ def afpoBaseGrid():
 def initializeExperiment():
 	grid = afpoBaseGrid()
 	randSeedsList = tfp.randSeedList(os.path.join(routes.evscriptsHome, 'seedFiles', 'randints1416551751.dat'), size=200)
-	grid *= Grid1d('randomSeeds', randSeedsList[0:7])
-	return afpoForRunBasedLPEExperiment('afpoForRunBasedLPE20151202',
+#	grid *= Grid1d('randomSeeds', randSeedsList[0:7])
+	grid *= Grid1d('randomSeeds', randSeedsList[0:1])
+	return afpoForRunBasedLPEExperiment('afpoForRunBasedLPE20151222',
 					[{}],
 					grid=grid,
-					expectedWallClockTime='29:00:00',
-					queue='ibq',
+#					expectedWallClockTime='29:00:00',
+					expectedWallClockTime='03:00:00',
+#					queue='workq',
+					queue='shortq',
 					repeats=3)
 
 if __name__ == '__main__':
