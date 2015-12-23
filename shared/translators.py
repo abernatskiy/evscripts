@@ -14,4 +14,4 @@ def dictionary2FilesystemName(dictionary):
 			print('WARNING: Nontrivial numberless dictionary ' + str(dictionary) + ' gets converted into a default string (\'None\') - this may cause some filesystem names to not be unique')
 		return 'None'
 	else:
-		return '_'.join(map(lambda (x, y): x + str(y), filteredDict.items()))
+		return '_'.join(map(lambda (x, y): x + str(y), sorted(filteredDict.items())))

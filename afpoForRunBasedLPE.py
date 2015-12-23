@@ -45,7 +45,7 @@ def initializeExperiment():
 					[{}],
 					grid=grid,
 #					expectedWallClockTime='29:00:00',
-					expectedWallClockTime='03:00:00',
+					expectedWallClockTime='00:10:00',
 #					queue='workq',
 					queue='shortq',
 					repeats=3)
