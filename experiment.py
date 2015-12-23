@@ -169,14 +169,17 @@ class Experiment(object):
 			routes.pbsBashHelper]
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
-			subprocess.check_call(cmdList)
+			self._curJobID = subprocess.check_output(cmdList)
 
 	def _getConditionsString(self):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
+		if not hasattr(self, '_curJobID'):
+			raise ValueError('Cannot wait for a nonexistant job!')
 		if not self.dryRun:
-			while subprocess.check_output([pbsEnv.qstat, '-u', pbsEnv.user]) != '':
+			jobsInfo = subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user])
+			while self._curJobID in jobsInfo:
 				sleep(pbsEnv.qstatCheckingPeriod)
 
 	@abstractmethod
