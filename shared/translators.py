@@ -9,4 +9,9 @@ def dictionary2FilesystemName(dictionary):
      Tip: boolean values are considered numeric.
 	'''
 	filteredDict = {k: v for k, v in dictionary.iteritems() if isinstance(v, numbers.Number)}
-	return '_'.join(map(lambda (x, y): x + str(y), filteredDict.items()))
+	if len(filteredDict) == 0:
+		if len(dictionary) > 0:
+			print('WARNING: Nontrivial numberless dictionary ' + str(dictionary) + ' gets converted into a default string (\'None\') - this may cause some filesystem names to not be unique')
+		return 'None'
+	else:
+		return '_'.join(map(lambda (x, y): x + str(y), filteredDict.items()))
