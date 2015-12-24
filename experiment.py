@@ -170,6 +170,12 @@ class Experiment(object):
 		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
 			self._curJobID = subprocess.check_output(cmdList)
+			for t in xrange(2500):
+				if self._curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
+					print('Job ' + self._curJobID + ' was successfully submitted (IDs ' + str(beginID) + '-' + str(endID) + ')')
+					return
+				sleep(0.2)
+			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue in 5 minutes')
 
 	def _getConditionsString(self):
 		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
@@ -178,8 +184,7 @@ class Experiment(object):
 		if not hasattr(self, '_curJobID'):
 			raise ValueError('Cannot wait for a nonexistant job!')
 		if not self.dryRun:
-			jobsInfo = subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user])
-			while self._curJobID in jobsInfo:
+			while self._curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
 				sleep(pbsEnv.qstatCheckingPeriod)
 
 	@abstractmethod

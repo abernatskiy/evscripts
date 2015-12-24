@@ -27,7 +27,7 @@ class afpoForRunBasedLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'populationSize = 400\n'
 						'logBestIndividual = yes\n'
 						'backup = yes\n'
-						'backupPeriod = 100\n'
+						'backupPeriod = 1\n'
 						'genStopAfter = 50000\n')
 
 def afpoBaseGrid():
@@ -45,7 +45,7 @@ def initializeExperiment():
 					[{}],
 					grid=grid,
 #					expectedWallClockTime='29:00:00',
-					expectedWallClockTime='00:10:00',
+					expectedWallClockTime='00:05:00',
 #					queue='workq',
 					queue='shortq',
 					repeats=3)
