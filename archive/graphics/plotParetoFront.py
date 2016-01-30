@@ -1,10 +1,5 @@
 #!/usr/bin/python2
 
-import numpy as np
-import matplotlib.pyplot as plt
-import argparse
-import subprocess
-
 def connectionCost(netDesc):
 	return sum([0.0 if x==0.0 else 1.0 for x in netDesc])
 
@@ -77,17 +72,23 @@ class ParetoPlotter(object):
 		plt.show()
 
 if __name__ == '__main__':
+	import argparse
 	cliParser = argparse.ArgumentParser(description='Pareto front plotter')
 	cliParser.add_argument('filename', metavar='filename', type=str, help='name of the log file to plot')
 	cliParser.add_argument('-i', dest='interactive', action='store_const', const=True, default=False, help='only show interactive Matplotlib plot window')
 	cliParser.add_argument('-V', dest='view', action='store_const', const=True, default=False, help='open Gwenview when done with plotting')
 	cliArgs = cliParser.parse_args()
 
+	import matplotlib
 	p = ParetoPlotter(cliArgs.filename)
 	if cliArgs.interactive:
+		import matplotlib.pyplot as plt
 		p.showPlot()
 	else:
+		matplotlib.use('Agg')
+		import matplotlib.pyplot as plt
 		outfilename = cliArgs.filename + '.png'
 		p.savePlot(outfilename)
 		if cliArgs.view:
+			import subprocess
 			subprocess.call(['gwenview', outfilename])
