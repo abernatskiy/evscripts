@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib
 import argparse
 import subprocess
 
@@ -83,12 +83,17 @@ class ParetoPlotter(object):
 		plt.show()
 
 if __name__ == '__main__':
+	import argparse
 	cliParser = argparse.ArgumentParser(description='Pareto front plotter')
 	cliParser.add_argument('filename', metavar='filename', type=str, help='name of the log file to plot')
 	cliParser.add_argument('otherFilename0', metavar='otherFilename0', nargs='?', default=None, type=str, help='name of one more file to plot')
 	cliParser.add_argument('-i', dest='interactive', action='store_const', const=True, default=False, help='only show interactive Matplotlib plot window')
 	cliParser.add_argument('-V', dest='view', action='store_const', const=True, default=False, help='open Gwenview when done with plotting')
 	cliArgs = cliParser.parse_args()
+
+	if not cliArgs.interactive:
+		matplotlib.use('Agg')
+	import matplotlib.pyplot as plt
 
 	if cliArgs.otherFilename0:
 		p0 = ParetoPlotter(cliArgs.otherFilename0)
@@ -106,4 +111,5 @@ if __name__ == '__main__':
 		outfilename = cliArgs.filename + '.png'
 		plt.savefig(outfilename)
 		if cliArgs.view:
+			import subprocess
 			subprocess.call(['gwenview', outfilename])
