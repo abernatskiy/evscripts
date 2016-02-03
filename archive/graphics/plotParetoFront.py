@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import argparse
 import subprocess
 
+pointSizeMultiplier = 4
+
 def connectionCost(netDesc):
 	return sum([0.0 if x==0.0 else 1.0 for x in netDesc])
 
@@ -45,28 +47,32 @@ class ParetoPlotter(object):
 		return '{' + ',\n\n '.join(map(str, sorted(self.paretoFront.iteritems()))) + '}'
 
 	def dataForPlot(self):
+		global pointSizeMultiplier
 		fit = []
 		cc = []
 		size = []
 		for key in sorted(self.paretoFront.keys()):
 			fit.append(-1.0*key[0])
 			cc.append(key[1])
-			size.append(32*len(self.paretoFront[key]))
+			size.append(pointSizeMultiplier*len(self.paretoFront[key]))
 		return fit, cc, size
 
-	def _plot(self):
+	def _plot(self, colorPoints='r', colorLine='b', label='Pareto front', title=None, priority=0):
 		f,c,s = self.dataForPlot()
 
 		fp, cp = rightLadder(f, c)
-		plt.plot(fp, cp, color='b', lw=3, zorder=1)
+		plt.plot(fp, cp, color=colorLine, lw=3, zorder=priority*3+1, label=label)
 
-		plt.scatter(f, c, marker='o', c='r', s=s, label='Pareto front', lw=0, zorder=2)
+		plt.scatter(f, c, marker='o', c=colorPoints, s=s, lw=0, zorder=priority*3+2)
 
 		plt.grid()
 
 		plt.xlabel('-1.0*fitness')
 		plt.ylabel('connection cost')
-		plt.title('Pareto front from file ' + self.filename)
+		if title:
+			plt.title(title)
+		else:
+			plt.title('Pareto front from file ' + self.filename)
 
 	def savePlot(self, figname):
 		self._plot()
@@ -79,15 +85,25 @@ class ParetoPlotter(object):
 if __name__ == '__main__':
 	cliParser = argparse.ArgumentParser(description='Pareto front plotter')
 	cliParser.add_argument('filename', metavar='filename', type=str, help='name of the log file to plot')
+	cliParser.add_argument('otherFilename0', metavar='otherFilename0', nargs='?', default=None, type=str, help='name of one more file to plot')
 	cliParser.add_argument('-i', dest='interactive', action='store_const', const=True, default=False, help='only show interactive Matplotlib plot window')
 	cliParser.add_argument('-V', dest='view', action='store_const', const=True, default=False, help='open Gwenview when done with plotting')
 	cliArgs = cliParser.parse_args()
 
+	if cliArgs.otherFilename0:
+		p0 = ParetoPlotter(cliArgs.otherFilename0)
+		p0._plot(colorPoints='y', colorLine='g', label=p0.filename, priority=1)
 	p = ParetoPlotter(cliArgs.filename)
+	p._plot(label='titular filename', title=p.filename)
+
+	if cliArgs.otherFilename0:
+		plt.legend()
+	plt.grid()
+
 	if cliArgs.interactive:
-		p.showPlot()
+		plt.show()
 	else:
 		outfilename = cliArgs.filename + '.png'
-		p.savePlot(outfilename)
+		plt.savefig(outfilename)
 		if cliArgs.view:
 			subprocess.call(['gwenview', outfilename])
