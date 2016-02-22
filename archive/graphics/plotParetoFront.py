@@ -5,10 +5,10 @@ import matplotlib
 import argparse
 import subprocess
 
-pointSizeMultiplier = 4
+pointSizeMultiplier = 16
 
-def connectionCost(netDesc):
-	return sum([0.0 if x==0.0 else 1.0 for x in netDesc])
+def connectionCost(netDesc, genotypeBeginsAt):
+	return sum([0.0 if x==0.0 else 1.0 for x in netDesc[(genotypeBeginsAt+1):]])
 
 def rightLadder(x, y):
 	N = len(x)
@@ -26,19 +26,19 @@ def rightLadder(x, y):
 	return xp, yp
 
 class ParetoPlotter(object):
-	def __init__(self, filename):
+	def __init__(self, filename, fitnessPos=0, genotypeBeginsAt=1, secondObjFunc=lambda s: connectionCost(s, 1)):
 		self.filename = filename
 		self.paretoFront = {}
 		with open(filename, 'r') as file:
 			for line in file:
-				self._parseLine(line)
+				self._parseLine(line, fitnessPos, genotypeBeginsAt, secondObjFunc)
 
-	def _parseLine(self, line):
+	def _parseLine(self, line, fitnessPos, genotypeBeginsAt, secondObjFunc):
 		if line[0] == '#' or line == '':
 			return
 		fvals = map(float, line.split())
-		objpair = (fvals[0], connectionCost(fvals[2:]))
-		indiv = (int(fvals[1]), fvals[2:])
+		objpair = (fvals[fitnessPos], secondObjFunc(fvals))
+		indiv = (int(fvals[genotypeBeginsAt]), fvals[(genotypeBeginsAt+1):])
 		if not self.paretoFront.has_key(objpair):
 			self.paretoFront[objpair] = []
 		self.paretoFront[objpair].append(indiv)
@@ -57,18 +57,20 @@ class ParetoPlotter(object):
 			size.append(pointSizeMultiplier*len(self.paretoFront[key]))
 		return fit, cc, size
 
-	def _plot(self, colorPoints='r', colorLine='b', label='Pareto front', title=None, priority=0):
-		f,c,s = self.dataForPlot()
+	def plot(self, colorPoints='r', colorLine='b', label='Pareto front', title=None, priority=0):
+		self._plotData(colorPoints=colorPoints, colorLine=colorLine, label=label, priority=priority)
+		self._plotAccessory(title=title)
 
+	def _plotData(self, colorPoints='r', colorLine='b', label='Pareto front', priority=0):
+		f,c,s = self.dataForPlot()
 		fp, cp = rightLadder(f, c)
 		plt.plot(fp, cp, color=colorLine, lw=3, zorder=priority*3+1, label=label)
-
 		plt.scatter(f, c, marker='o', c=colorPoints, s=s, lw=0, zorder=priority*3+2)
 
+	def _plotAccessory(self, title=None, xlabel='-1.0*fitness', ylabel='connection cost'):
 		plt.grid()
-
-		plt.xlabel('-1.0*fitness')
-		plt.ylabel('connection cost')
+		plt.xlabel(xlabel)
+		plt.ylabel(ylabel)
 		if title:
 			plt.title(title)
 		else:
@@ -97,9 +99,9 @@ if __name__ == '__main__':
 
 	if cliArgs.otherFilename0:
 		p0 = ParetoPlotter(cliArgs.otherFilename0)
-		p0._plot(colorPoints='y', colorLine='g', label=p0.filename, priority=1)
+		p0.plot(colorPoints='y', colorLine='g', label=p0.filename, priority=1)
 	p = ParetoPlotter(cliArgs.filename)
-	p._plot(label='titular filename', title=p.filename)
+	p.plot(label='titular filename', title=p.filename)
 
 	if cliArgs.otherFilename0:
 		plt.legend()
