@@ -61,27 +61,32 @@ class ParetoPlotter(object):
 		self._plotData(colorPoints=colorPoints, colorLine=colorLine, label=label, priority=priority)
 		self._plotAccessory(title=title)
 
-	def _plotData(self, colorPoints='r', colorLine='b', label='Pareto front', priority=0):
+	def _plotData(self, colorPoints='r', colorLine='b', label='Pareto front', priority=0, plotPoints=True):
+		import matplotlib.pyplot as plt
 		f,c,s = self.dataForPlot()
 		fp, cp = rightLadder(f, c)
 		plt.plot(fp, cp, color=colorLine, lw=3, zorder=priority*3+1, label=label)
-		plt.scatter(f, c, marker='o', c=colorPoints, s=s, lw=0, zorder=priority*3+2)
+		if plotPoints:
+			plt.scatter(f, c, marker='o', c=colorPoints, s=s, lw=0, zorder=priority*3+2)
 
-	def _plotAccessory(self, title=None, xlabel='-1.0*fitness', ylabel='connection cost'):
+	def _plotAccessory(self, title=None, xlabel='-1.0*fitness', ylabel='connection cost', legend=True):
+		import matplotlib.pyplot as plt
 		plt.grid()
 		plt.xlabel(xlabel)
 		plt.ylabel(ylabel)
+		if legend:
+			plt.legend()
 		if title:
 			plt.title(title)
 		else:
 			plt.title('Pareto front from file ' + self.filename)
 
 	def savePlot(self, figname):
-		self._plot()
+		import matplotlib.pyplot as plt
 		plt.savefig(figname)
 
 	def showPlot(self):
-		self._plot()
+		import matplotlib.pyplot as plt
 		plt.show()
 
 if __name__ == '__main__':
@@ -95,13 +100,14 @@ if __name__ == '__main__':
 
 	if not cliArgs.interactive:
 		matplotlib.use('Agg')
-	import matplotlib.pyplot as plt
 
 	if cliArgs.otherFilename0:
 		p0 = ParetoPlotter(cliArgs.otherFilename0)
 		p0.plot(colorPoints='y', colorLine='g', label=p0.filename, priority=1)
 	p = ParetoPlotter(cliArgs.filename)
 	p.plot(label='titular filename', title=p.filename)
+
+	import matplotlib.pyplot as plt
 
 	if cliArgs.otherFilename0:
 		plt.legend()
