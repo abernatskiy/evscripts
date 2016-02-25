@@ -18,6 +18,18 @@ def getNumLinks(topology):
 	else:
 		return None
 
+def getPositions(topology):
+	scalingFactor = 1
+	curY = 1
+	x = []
+	y = []
+	for l in map(abs, topology):
+#		x.append([ -1.*float(l-1)/2 + float(i) for i in range(l)])
+		x.append([ 1 + i for i in range(l)])
+		y.append(curY)
+		curY += 2
+	return [ [ xq*scalingFactor for xq in xl ] for xl in x ], [ yq*scalingFactor for yq in y ]
+
 def getWeights(netdesc, topol):
 	links = []
 	curpos = 0
@@ -45,8 +57,12 @@ def printWeights(nwWeights):
 		print('\n' + repr(hwgts))
 	print('')
 
+
 import sys
+
 numLinks = getNumLinks(annTopology)
+xn, yn = getPositions(annTopology)
+
 while True:
 	mline = sys.stdin.readline()
 	if not mline:
@@ -61,27 +77,43 @@ while True:
 
 	nwWeights = getWeights(nwDesc, annTopology)
 
-	print('ID' + str(nwID))
-	printWeights(nwWeights)
-
 	graph = pydot.Dot(graph_type='digraph')
 
-	for iInNode in range(annTopology[0]):
-		graph.add_node(pydot.Node('i'+str(iInNode), label=inputAnnotations[iInNode], shape='circle')) # http://www.graphviz.org/doc/info/attrs.html
+	# Making input nodes
+	# See node attribute list at http://www.graphviz.org/doc/info/attrs.html
+	upperNodes = []
+	for i in range(abs(annTopology[0])):
+		curNodeName = 'i' + str(i)
+		curNodePos = '\"' + str(xn[0][i]) + ',' + str(yn[0]) + '!\"'
+		print curNodePos
+		graph.add_node(pydot.Node(curNodeName, label=inputAnnotations[i], shape='circle', pos=curNodePos, pin=True, width=0.75))
+		upperNodes.append(curNodeName)
 
-	for iLayer in range(1, len(annTopology)-1):
-		for iNode in range(annTopology[iLayer]):
-			graph.add_node(pydot.Node('h'+str(iNode)+'_'+str(iLayer), shape='circle'))
-			for iUpperNode in range(annTopology[iLayer-1]):
-				graph.add_edge(pydot.Edge())
+	# For each layer below the input
+	for l in range(1, len(annTopology)):
+		curNodes = []
+		upperLayerSize = abs(annTopology[l-1])
+		curLayerSize = abs(annTopology[l])
+		# Add all nodes
+		for j in range(curLayerSize):
+			curNodeName = 'h'+str(j)+'_'+str(l) if l<(len(annTopology)-1) else 'm'+str(j)
+			curNodePos = '\"' + str(xn[l][j]) + ',' + str(yn[l]) + '!\"'
+			print curNodePos
+			curNodes.append(curNodeName)
+			graph.add_node(pydot.Node(curNodeName, shape='circle', pos=curNodePos, pin=True, width=0.75))
+		# Add connections from the upper layer to the current layer
+		wgts, hwgts = nwWeights[l-1]
+		for i in range(upperLayerSize):
+			for j in range(curLayerSize):
+				if wgts[i][j] != 0:
+					graph.add_edge(pydot.Edge(upperNodes[i], curNodes[j], color='red' if wgts[i][j]<0 else 'blue'))
+		# If the topology involves recursion, add connection from the current layer to itself
+		if annTopology[l] < 0:
+			for i in range(curLayerSize):
+				for j in range(curLayerSize):
+					if hwgts[i][j] != 0:
+						graph.add_edge(pydot.Edge(curNodes[i], curNodes[j], color='red' if hwgts[i][j]<0 else 'blue'))
+		upperNodes = curNodes
 
-			graph.add_node(pydot.Node('i'+str(iNode), shape='circle')) # http://www.graphviz.org/doc/info/attrs.html
-
-graph.write_png('gr.png')
-'''
-
-#graph.add_edge(pydot.Edge(node_a, node_b))
-#graph.add_edge(pydot.Edge(node_b, node_c))
-#graph.add_edge(pydot.Edge(node_c, node_d))
-#graph.add_edge(pydot.Edge(node_d, node_a, label="and back we go again", labelfontcolor="#009933", fontsize="10.0", color="blue"))
+	graph.write_png(str(nwID)+'.png')
 
