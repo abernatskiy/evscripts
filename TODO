@@ -1,0 +1,1 @@
+1. Make sure that the processResults code is aware when it writes anything into the old results dir

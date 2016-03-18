@@ -10,9 +10,32 @@ from shared.grid import LogGrid,Grid1d
 import tools.fileProcessors as tfp
 import routes
 
+def mkdir(dirname):
+	if not os.path.isdir(dirname):
+		os.makedirs(dirname)
+
 class afpoForRunBasedLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 	def processResults(self):
-		pass
+#		for updir in ./*; do cd $updir; for dir in ./*; do if [ -d $dir ]; then cd ${dir}; mkdir tmp; for file in bestIndividual*.log; do cat $file | grep -v \# | cut -d ' ' -f2 > tmp/$file; done; paste -d ' ' tmp/* > ../${dir}.fitness; rm -r tmp; cd ..; fi; done; cd ..; done
+
+#		def testFunc(gridPoint, condPoint, self, testStr, fgs=''):
+#			print('Args: ' + str(gridPoint))
+#		self.executeAtEveryConditionsDir(testFunc, (self, 'testarg'), {'fgs': 'fds'})
+		import shutil
+		from shared.translators import dictionary2FilesystemName
+#		globalResultsDir = os.path.join(routes.home, 'afpoForLPEResults')
+		globalResultsDir = os.path.join('/slowstorage/lpeArchives', 'afpoForLPEResults')
+		mkdir(globalResultsDir)
+		def grabAllTS(gridPoint, condPoint, self, globalResultsDir):
+			gains = {x: gridPoint[x] for x in ['sensorGain', 'forceGain']}
+			drags = {x: gridPoint[x] for x in ['linearDrag', 'angularDrag']}
+			gainsDir = os.path.join(globalResultsDir, dictionary2FilesystemName(gains))
+			dragsDir = os.path.join(gainsDir, dictionary2FilesystemName(drags))
+			mkdir(gainsDir)
+			mkdir(dragsDir)
+			filename = 'bestIndividual' + str(gridPoint['randomSeeds']) + '.log'
+			shutil.copyfile(filename, os.path.join(dragsDir, filename))
+		self.executeAtEveryConditionsDir(grabAllTS, (self, globalResultsDir), {})
 
 	def evsConfig(self):
 		return ('[classes]\n'
@@ -36,16 +59,19 @@ def afpoBaseGrid():
 	expCondGrid = Grid1d('linearDrag', [0.0, 0.2]) + Grid1d('angularDrag', [0.0, 0.2])
 	return sgGrid*fgGrid*expCondGrid
 
-def initializeExperiment():
+def initializeExperimentWithSeeds(beginSeed, endSeed, expName):
 	grid = afpoBaseGrid()
 	randSeedsList = tfp.randSeedList(os.path.join(routes.evscriptsHome, 'seedFiles', 'randints1416551751.dat'), size=200)
-	grid *= Grid1d('randomSeeds', randSeedsList[0:7])
-	return afpoForRunBasedLPEExperiment('afpoForRunBasedLPE00',
+	grid *= Grid1d('randomSeeds', randSeedsList[beginSeed:endSeed])
+	return afpoForRunBasedLPEExperiment(expName,
 					[{}],
 					grid=grid,
 					expectedWallClockTime='29:00:00',
 					queue='workq',
 					repeats=4)
+
+def initializeExperiment():
+	return initializeExperimentWithSeeds(0, 7, 'afpoForRunBasedLPE00')
 
 if __name__ == '__main__':
 	e = initializeExperiment()

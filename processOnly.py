@@ -5,8 +5,8 @@ cliParser = argparse.ArgumentParser(description='Run only the data processing pa
 cliParser.add_argument('experimentScript', metavar='experimentScript', type=str, help='executable file of the experiment of interest')
 cliArgs = cliParser.parse_args()
 
-import importlib
-experimentDesc = importlib.import_module(cliArgs.experimentScript)
+import imp
+experimentDesc = imp.load_source('nothing', cliArgs.experimentScript)
 
 e = experimentDesc.initializeExperiment()
 e.enterWorkDir()

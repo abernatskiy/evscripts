@@ -28,12 +28,13 @@ class Experiment(object):
          Is executed at the work dir (./<name>).
 
      Handy utilities for building processResults():
-       enterWorkDir(self)
-       exitWorkDir(self) - for user navigation when calling
-         processResults() outside of run()
        executeAtEveryExperimentDir(self, function, cargs, kwargs)
        executeAtEveryConditionsDir(self, function, cargs, kwargs)
          - self-explanatory, works only within the work dir.
+       enterWorkDir(self)
+       exitWorkDir(self) - for user navigation when calling
+         processResults() outside of run(),
+         NOT NEEDED IN MOST CASES
 	'''
 	__metaclass__ = ABCMeta
 
@@ -122,7 +123,7 @@ class Experiment(object):
 		noteFile.write(line + '\n')
 		noteFile.close()
 
-	def _makeWorkDir(self):
+	def _makeWorkDir(self): # TODO: move to tools
 		'''Creates a working directory named after the experiment in the current directory'''
 		if os.path.isdir(self.name):
 			print('Working directory exists, trying to back it up and create a new one...')
@@ -176,9 +177,6 @@ class Experiment(object):
 					return
 				sleep(0.2)
 			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue in 5 minutes')
-
-	def _getConditionsString(self):
-		return shared.translators.listOfDictionaries2CompactString(self.experimentalConditions)
 
 	def _waitForCompletion(self):
 		if not hasattr(self, '_curJobID'):
