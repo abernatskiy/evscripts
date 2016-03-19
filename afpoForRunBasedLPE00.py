@@ -50,7 +50,7 @@ class afpoForRunBasedLPEExperiment(sedce.staticEvsDynamicCeExperiment):
 						'populationSize = 400\n'
 						'logBestIndividual = yes\n'
 						'backup = yes\n'
-						'backupPeriod = 100\n'
+						'backupPeriod = 1000\n'
 						'genStopAfter = 50000\n')
 
 def afpoBaseGrid():
