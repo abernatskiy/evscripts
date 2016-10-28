@@ -3,6 +3,8 @@ from itertools import izip
 
 from tools.algorithms import sumOfDicts, listsIntersect
 
+##### Abstract base class for grids #####
+
 class Grid(object):
 	'''Abstract base class for ordered sets of points in multidimensional spaces
      with labeled axes.
@@ -47,42 +49,7 @@ class Grid(object):
 	def __mul__(self, other):
 		return ProductOfGrids(self, other)
 
-class Grid1d(Grid):
-	'''Ordered set of points in one-dimensional space with a label on the axis'''
-
-	def __init__(self, paramName, paramVals):
-		self.name = paramName
-		self.vals = paramVals
-
-	def __len__(self):
-		return len(self.vals)
-
-	def __iter__(self):
-		for val in self.vals:
-			yield {self.name: val}
-
-	def __getitem__(self, i):
-		super(Grid1d, self).__getitem__(i)
-		return {self.name: self.vals[i]}
-
-	def paramNames(self):
-		return [self.name]
-
-class LinGrid(Grid1d):
-	'''Ordered set of uniformly spaced points in one-dimensional numeric space'''
-
-	def __init__(self, paramName, baseValue, increment, downSteps, upSteps):
-		getVal = lambda i: float(baseValue + float(i)*increment)
-		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
-		super(LinGrid, self).__init__(paramName, vals)
-
-class LogGrid(Grid1d):
-	'''Ordered set of log spaced points in one-dimensional numeric space'''
-
-	def __init__(self, paramName, baseValue, multiplier, downSteps, upSteps):
-		getVal = lambda i: float(baseValue * (multiplier**i))
-		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
-		super(LogGrid, self).__init__(paramName, vals)
+##### Composite grid classes #####
 
 class ProductOfGrids(Grid):
 	'''Cartesian product of two grids'''
@@ -137,3 +104,58 @@ class SumOfGrids(Grid):
 
 	def paramNames(self):
 		return self.first.paramNames() + self.second.paramNames()
+
+##### Practical elementary grid classes #####
+
+class Grid1d(Grid):
+	'''Ordered set of points in one-dimensional space with a label on the axis'''
+
+	def __init__(self, paramName, paramVals):
+		self.name = paramName
+		self.vals = paramVals
+
+	def __len__(self):
+		return len(self.vals)
+
+	def __iter__(self):
+		for val in self.vals:
+			yield {self.name: val}
+
+	def __getitem__(self, i):
+		super(Grid1d, self).__getitem__(i)
+		return {self.name: self.vals[i]}
+
+	def paramNames(self):
+		return [self.name]
+
+class LinGrid(Grid1d):
+	'''Ordered set of uniformly spaced points in one-dimensional numeric space'''
+
+	def __init__(self, paramName, baseValue, increment, downSteps, upSteps):
+		getVal = lambda i: float(baseValue + float(i)*increment)
+		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
+		super(LinGrid, self).__init__(paramName, vals)
+
+class LogGrid(Grid1d):
+	'''Ordered set of log spaced points in one-dimensional numeric space'''
+
+	def __init__(self, paramName, baseValue, multiplier, downSteps, upSteps):
+		getVal = lambda i: float(baseValue * (multiplier**i))
+		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
+		super(LogGrid, self).__init__(paramName, vals)
+
+class Grid1dFromFile(Grid1d):
+	'''Ordered set of points in 1d space with values read from a file'''
+	def __init__(self, paramName, valuesFileName, size=None, applyFunction=None):
+		with open(valuesFileName, 'r') as valuesFile:
+			valuesStr = valuesFile.read()
+		vstrs = valuesStr.split()
+		if size:
+			if len(vstrs) < size:
+				raise ValueError('Grid in the file is too small: ' +
+													str(size) + 'values requested, ' +
+													str(len(vstrs)) + ' available at ' + valuesFileName)
+			vstrs = vstrs[:size]
+		if applyFunction:
+			vstrs = map(applyFunction, vstrs)
+		super(Grid1dFromFile, self).__init__(paramName, vstrs)

@@ -3,7 +3,7 @@ from os.path import expanduser, join
 home = expanduser('~')
 evscriptsHome = join(home, 'evscripts')
 
-envHome = join(evscriptsHome, 'env')
+envHome = join(evscriptsHome, 'environment')
 sysEnv = join(envHome, 'os', 'gentoo.py')
 pbsEnv = join(envHome, 'host', 'vacc.py')
 
