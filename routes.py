@@ -7,9 +7,8 @@ envHome = join(evscriptsHome, 'env')
 sysEnv = join(envHome, 'sysGentoo.py')
 pbsEnv = join(envHome, 'pbsVacc.py')
 
-helpersHome = join(evscriptsHome, 'helpers')
-pbsBashHelper = join(helpersHome, 'pbsVaccSubmittable.sh')
-pbsPythonHelper = join(helpersHome, 'staticEvsDynamicCeHelper.py')
+workersHome = evscriptsHome
+pbsBashWorker = join(helpersHome, 'pbs.sh')
 
 clientHome = join(home, 'cylindersEvasion')
 evsHome = join(home, 'evs')

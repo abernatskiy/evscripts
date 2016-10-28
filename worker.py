@@ -12,9 +12,9 @@ def _getTimeString(tsecs):
 	h, m = divmod(m, 60)
 	return '%d:%02d:%02d' % (h, m, s)
 
-class Helper(object):
-	'''Abstract base class for Helper objects which handle execution of
-     the final experiment processes at cluster nodes.
+class Worker(object):
+	'''Abstract base class for Worker objects which handle execution of
+     final experiment processes at cluster nodes.
 
      Abstract methods:
        runGroup(self, fullConditions) - function which executes the
