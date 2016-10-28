@@ -53,7 +53,6 @@ class Grid(object):
 
 class ProductOfGrids(Grid):
 	'''Cartesian product of two grids'''
-
 	def __init__(self, first, second):
 		if listsIntersect(first.paramNames(), second.paramNames()):
 			raise ValueError('Intersecting parameter name sets are not allowed for Grids in Cartesian products:\n'
@@ -80,7 +79,6 @@ class ProductOfGrids(Grid):
 
 class SumOfGrids(Grid):
 	'''Elementwise concatenation of two grids of the same length'''
-
 	def __init__(self, first, second):
 		if listsIntersect(first.paramNames(), second.paramNames()):
 			raise ValueError('Intersecting parameter name sets are not allowed for Grids in elementwise concatenations:\n'
@@ -109,7 +107,6 @@ class SumOfGrids(Grid):
 
 class Grid1d(Grid):
 	'''Ordered set of points in one-dimensional space with a label on the axis'''
-
 	def __init__(self, paramName, paramVals):
 		self.name = paramName
 		self.vals = paramVals
@@ -130,7 +127,6 @@ class Grid1d(Grid):
 
 class LinGrid(Grid1d):
 	'''Ordered set of uniformly spaced points in one-dimensional numeric space'''
-
 	def __init__(self, paramName, baseValue, increment, downSteps, upSteps):
 		getVal = lambda i: float(baseValue + float(i)*increment)
 		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
@@ -138,11 +134,17 @@ class LinGrid(Grid1d):
 
 class LogGrid(Grid1d):
 	'''Ordered set of log spaced points in one-dimensional numeric space'''
-
 	def __init__(self, paramName, baseValue, multiplier, downSteps, upSteps):
 		getVal = lambda i: float(baseValue * (multiplier**i))
 		vals = [getVal(i) for i in xrange(-1*downSteps, upSteps+1)]
 		super(LogGrid, self).__init__(paramName, vals)
+
+class TrivialGrid(Grid1d):
+	'''Ordered set of points in 1d space consisting of one point repeated
+     N times
+	'''
+	def __init__(self, paramName, paramVal, size):
+		super(TrivialGrid, self).__init__(paramName, [paramVal]*size)
 
 class Grid1dFromFile(Grid1d):
 	'''Ordered set of points in 1d space with values read from a file'''
