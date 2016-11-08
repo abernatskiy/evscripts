@@ -85,3 +85,10 @@ def reportFailureOnPoint(dbfilename, id):
 	with sqlite3.connect(dbfilename) as con:
 		cur = con.cursor()
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesFailed=passesFailed+1 WHERE id={};'.format(id))
+
+def checkForCompletion(dbfilename):
+	with sqlite3.connect(dbfilename) as con:
+		cur = con.cursor()
+		cur.execute('SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
+		ids = cur.fetchall()
+	return len(ids) == 0

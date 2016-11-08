@@ -4,6 +4,6 @@
 #PBS -m a
 
 cd $PBS_O_WORKDIR
-echo "This is experimentJob running on `hostname`"
-echo "Command line: $PYTHON $PYTHON_HELPER $EVSCRIPTS_HOME $PBS_ARRAYID $PARENT_SCRIPT"
-$PYTHON ${EVSCRIPTS_HOME}/helper.py $PBS_ARRAYID $PARENT_SCRIPT
+echo "This is pbs.sh running on `hostname`"
+echo "Starting a worker with command line $PYTHON ${EVSCRIPTS_HOME}/helper.py $PARENT_SCRIPT $POINT_PER_JOB"
+$PYTHON ${EVSCRIPTS_HOME}/worker.py $PARENT_SCRIPT $POINT_PER_JOB

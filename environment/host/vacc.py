@@ -4,6 +4,7 @@
 user = 'abernats'
 qsub = '/opt/pbs/bin/qsub'
 qstat = '/opt/pbs/bin/qstat'
+qsubDelay = 0
 qstatCheckingPeriod = 120
 defaultQueue = 'shortq'
 queueLims = {'shortq': '03:00:00', 'workq': '30:00:00', 'ibq': '30:00:00'}

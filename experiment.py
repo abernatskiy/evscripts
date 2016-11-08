@@ -7,16 +7,29 @@ from time import sleep
 from abc import ABCMeta, abstractmethod
 
 import routes
-import shared.translators
+import translator
+import gridSql
 
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
 
 class Experiment(object):
-	'''Abstract base class for Experiment objects.
-     These objects are intended for use in computational
-     experiments in evolutionary computation ran on
-     PBS-based supercomputers.
+	'''Abstract base class for Experiment classes, which are
+	   supposed to help run computational experiments with
+	   multiple parameters on PBS-based supercomputers.
+
+	   User interface definitions (see helpstrings):
+	     Experiment.__init__(self,
+	       name,
+	       experimentalConditions,
+	       grid=None,
+	       pointsPerJob=1,
+	       queue=None,
+	       expectedWallClockTime=None,
+	       dryRun=False,
+	       repeats=1
+	     )
+	     Experiment.run()
 
      Abstract methods:
        prepareEnv(self) - must create a suitable
@@ -38,108 +51,115 @@ class Experiment(object):
 	'''
 	__metaclass__ = ABCMeta
 
-	def __init__(self, name, experimentalConditions, grid=None, pointsPerJob=1, queue=None, expectedWallClockTime=None, dryRun=False, repeats=1):
+	def __init__(self, name, grid, pointsPerJob=1, passes=1, queue=None, expectedWallClockTime=None, maxJobs=None, repos={}, dryRun=False):
 		'''Arguments:
-       name is the name of the experiment AND of its
-         working directory.
-       experimentalConditions is a list of dictionaries
-         describing parameters for different experimental
-         groups. The number of experimental groups is
-         equal to the length of the list. In each
-         dictionary the keys are the names of experimental
-         parameters and the values are their values.
-       grid is an object desribing the set of extra
-         (e.g. environmental) conditions under which we
-         wish to know the experiment's outcome. Must be
-         iterable and yield parameter dictionaries of the
-         same type as the ones used in
-         experimentalConditions. The default is to
-         conduct the experiment just once under no extra
-         conditions. Saved into the member variable
-         self.grid.
-       pointsPerJob indicates how many experiments
-         should be conducted per cluster job. The default
-         is one, and that includes performing runs for
-         all parameter sets in experimentalConditions.
-       queue is the name of the queue which is to be used
-         for the jobs. Default is read from the PBS
-         database (see exampleRoutes.py).
-       expectedWallClockTime is a PBS-parsable string
+       name: the name of the experiment, its
+         working directory and its main database
+         (located at <name>/<name>.db).
+       grid: describes the set of conditions under
+         which we wish to see the computation's outcome.
+         Must be iterable, indexable and yield parameter
+         dictionaries with parameter names as keys and
+         parameter values as values.
+       pointsPerJob: indicates how many instances of
+         computation should be performed within one
+         cluster job. The default is one, meaning
+         that each point of the parametric grid will be
+         processed as a separate job. Useful for short
+         jobs.
+       passes: how many passes does your calculation
+         require. Default is 1. Useful for very long
+         computations with checkpointing.
+       queue: the name of the queue which is to be used
+         for the jobs. Default is specified on per-host
+         basis in the defaultQueue variable at the host
+         environment file (pointed to by pbsEnv variable
+         at the routes.py).
+       maxJobs: how many workers should the system spawn
+         at any given moment. The default is
+         ceil(len(grid)/pointPerJob), the maximum number of
+         workers which can be ran concurrently without
+         some of them waiting idle.
+       expectedWallClockTime: a scheduler-parsable string
          desribing a time span of a single job. Examples:
            03:00:00 - three hours
            7:00:00:00 - seven days
          Cutoff time of the queue is used by default.
-			dryRun shows whether or not you want to perform
-         time-consuming operations or just do a dry run.
-         Available as self.dryRun.
+       repos: Experiment class automatically checks and
+         stores info about versions and diffs of git
+         repositories used in the computation. By default
+         it will only monitor its own version; add all the
+         other software it uses here. The format is:
+           {'componentName': 'pathToComponentsRepo'}
+         You will probably want to fix this variable in
+         daughter classes.
+			 dryRun: set to true to perform a dry run.
 		'''
 		self.name = name
-		self._checkFSNameUniqueness(experimentalConditions)
-		self.experimentalConditions = experimentalConditions
 		self._checkFSNameUniqueness(grid)
 		self.grid = grid
 		self.pointsPerJob = pointsPerJob
-		self.queue = pbsEnv.defaultQueue if queue is None else queue
-		self.expectedWallClockTime = pbsEnv.queueLims[self.queue] if expectedWallClockTime is None else expectedWallClockTime
-		self._resultsDir = os.path.join(os.getcwd(), name, 'results')
-		self._resultsFiles = {}
+		self.passes = passes
+		self.queue = queue if queue else pbsEnv.defaultQueue
+		self.maxJobs = maxJobs if maxJobs else (len(grid)+self.pointsPerJob-1) / self.pointsPerJob
+		self.expectedWallClockTime = expectedWallClockTime if expectedWallClockTime else pbsEnv.queueLims[self.queue]
+		if passes != 1 and pointPerJob > 1:
+			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
+		self.repos = repos
 		self.dryRun = dryRun
-		self.repeats = repeats
-		if repeats != 1:
-			if pointsPerJob != 1:
-				raise ValueError('Either number of repeats or number of points per job must be equal to 1')
-			if len(self.experimentalConditions) != 1:
-				raise ValueError('Multiple experimental conditions do not work too well with repeats')
 
-	def _checkFSNameUniqueness(self, iterable):
-		if iterable is not None:
-			dirNames = map(shared.translators.dictionary2FilesystemName, iterable)
-			if not len(dirNames) == len(set(dirNames)):
-				raise ValueError('Dirnames produces by conditions are not unique:\n' + '\n'.join(dirNames))
+		self._curJobIDs = []
+		self.dbname = 'experiment.db'
 
-	def run(self):
-		self.prepareEnv()
-		numJobs = self._numJobs()
-		for i in xrange(self.repeats):
-			self._submitJobs(i*numJobs, (i+1)*numJobs-1)
-			self._waitForCompletion()
-		self.processResults()
-		self.exitWorkDir() # entered it at prepareEnv()
+	# Abstract methods: defining these defines an Experiment class
 
 	@abstractmethod
 	def prepareEnv(self):
 		'''Must be executed by any child through super.
-       The child may assume that it operates inside the working dir.
+       The child may then assume that it operates inside the working dir.
     '''
 		self._makeWorkDir()
 		self.enterWorkDir()
-		self._makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
+		self.makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
 		self._recordVersions()
-		self._makeNote('Apps versions recorded successfully')
-		os.makedirs(self._resultsDir)
+		self.makeNote('Apps versions recorded successfully')
+		gridSql.makeGridTable(self.grid, self.dbname)
+		gridSql.makeGridQueueTable(self.dbname, passes=self.passes)
 
-	def _makeNote(self, line):
-		noteFile = open('experimentNotes.txt', 'a')
-		noteFile.write(line + '\n')
-		noteFile.close()
+	@abstractmethod
+	def processResults(self):
+		pass
 
-	def _makeWorkDir(self): # TODO: move to tools
-		'''Creates a working directory named after the experiment in the current directory'''
-		if os.path.isdir(self.name):
-			print('Working directory exists, trying to back it up and create a new one...')
-			for i in xrange(10):
-				curCandidateDir = self.name + '.save' + str(i)
-				if not os.path.isdir(curCandidateDir):
-					break
-				else:
-					curCandidateDir = None
-			if curCandidateDir is None:
-				raise OSError('Too many backup directories (no less than ten). Go clean them up.')
-			else:
-				shutil.move(self.name, curCandidateDir)
-		elif os.path.exists(self.name):
-			raise OSError('Working directory path exists, but is not a directory. Go fix it.')
-		os.makedirs(self.name)
+	# Convenience functions - use these in definitions of the abstract methods
+
+	def makeNote(self, line):
+		with open('experimentNotes.txt', 'a') as noteFile:
+			noteFile.write(line + '\n')
+
+	# self.run() - classes' main method
+
+	def run(self):
+		self.prepareEnv()
+		# farm workers
+		jobsSubmitted = 0
+		while not gridSql.checkForCompletion(self.dbname):
+			self._weedWorkers()
+			while len(self._curJobIDs) < self.maxJobs:
+				self._spawnWorker()
+				jobsSubmitted += 1
+				sleep(pbsEnv.qsubDelay)
+				if jobsSubmitted > self.maxJobs*self.passes:
+					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(self.maxJobs*self.passes, jobsSubmitted))
+					if self.dryRun:
+						break
+			if self.dryRun:
+				break
+			sleep(pbsEnv.qstatCheckingPeriod)
+		# finishing touches
+		self.processResults()
+		self.exitWorkDir() # entered it at prepareEnv()
+
+	# Internals
 
 	def enterWorkDir(self):
 		if not os.path.isdir(self.name):
@@ -149,115 +169,13 @@ class Experiment(object):
 	def exitWorkDir(self):
 		os.chdir('..')
 
+	def _checkFSNameUniqueness(self, iterable):
+		dirNames = map(translator.dictionary2FilesystemName, iterable)
+		if not len(dirNames) == len(set(dirNames)):
+			raise ValueError('Dirnames produces by the grid are not all unique:\n' + '\n'.join(dirNames))
+
 	def _dateTime(self):
 		return subprocess.check_output([sysEnv.date])[:-1]
-
-	def _numJobs(self):
-		if self.grid is None:
-			return 1
-		else:
-			return (len(self.grid)+self.pointsPerJob-1) / self.pointsPerJob
-
-	def _submitJobs(self, beginID, endID):
-		cmdList = [pbsEnv.qsub,
-			'-q', self.queue,
-			'-l',  'walltime=' + self.expectedWallClockTime,
-			'-t', str(beginID) + '-' + str(endID),
-			'-v', 'PYTHON=' + sys.executable +
-						',PYTHON_HELPER=' + str(routes.pbsPythonHelper) +
-						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
-						',PARENT_SCRIPT=' + os.path.basename(sys.argv[0]),
-			routes.pbsBashHelper]
-		self._makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
-		if not self.dryRun:
-			self._curJobID = subprocess.check_output(cmdList)
-			for t in xrange(2500):
-				if self._curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
-					print('Job ' + self._curJobID + ' was successfully submitted (IDs ' + str(beginID) + '-' + str(endID) + ')')
-					return
-				sleep(0.2)
-			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue in 5 minutes')
-
-	def _waitForCompletion(self):
-		if not hasattr(self, '_curJobID'):
-			raise ValueError('Cannot wait for a nonexistant job!')
-		if not self.dryRun:
-			while self._curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
-				sleep(pbsEnv.qstatCheckingPeriod)
-
-	@abstractmethod
-	def processResults(self):
-		pass
-
-	def executeAtEveryExperimentDir(self, function, cargs, kwargs):
-		'''The function must accept a grid point parameter dictionary as its first argument'''
-		for gridPoint in self.grid:
-			gpDirName = shared.translators.dictionary2FilesystemName(gridPoint)
-			try:
-				os.chdir(gpDirName)
-				args = (gridPoint,) + cargs
-				function(*args, **kwargs)
-				os.chdir('..')
-			except OSError as err:
-					print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-
-	def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
-		'''Function condFunc must accept a grid point parameter dictionary as its first
-       argument and a conditions parameter dictionary as its second argument.
-		'''
-		def executeAtEveryConditionsDir(gridPoint, expObj, function, cargs, kwargs):
-			for condPoint in expObj.experimentalConditions:
-				condDirName = shared.translators.dictionary2FilesystemName(condPoint)
-				try:
-					os.chdir(condDirName)
-					args = (gridPoint, condPoint) + cargs
-					function(*args, **kwargs)
-					os.chdir('..')
-				except OSError as err:
-					print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-		condArgs = (self, condFunc, condCArgs, condKWArgs)
-		self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
-
-	def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
-		'''Appends a record to a results accumulating file. Can be exeuted from
-       any point. File format:
-         # paramsKey0 ... paramsKeyN resultsKey0 ... resultsKeyM
-         paramsVal0 ... paramsValN resultsVal0 ... resultsValM
-       The header comment is only added when the function is called for the
-       first time, the result lines are only appended afterwards.
-       If the function is called with a different set of parameter/result
-       names than the one used in the intial call, ValueError is raised.
-       For best results, keep the keys short (under 20 symbols).'''
-		sortingFunction = sorted
-		numDecimals = 13
-		numReprWidth = numDecimals + 7
-		def writeRowOfKeys(file, keys, initialShift=0):
-			for name in keys:
-				adjStr = name.ljust(numReprWidth - initialShift, ' ')
-				file.write(' ' + adjStr)
-				initialShift = 0
-		def writeRowOfVals(file, keys, dict, leadingSpaces=1):
-			for name in keys:
-				valStr = ( '%.' + str(numDecimals) + 'e' ) % dict[name]
-				valStr = valStr.rjust(numReprWidth, ' ')
-				file.write(' '*leadingSpaces + valStr)
-				leadingSpaces = 1
-		with open(os.path.join(self._resultsDir, resultsFileName), 'a') as file:
-			if self._resultsFiles.has_key(resultsFileName):
-				origParamNames, origResultNames = self._resultsFiles[resultsFileName]
-				if set(paramsDict.keys()) != set(origParamNames) or set(resultsDict.keys()) != set(origResultNames):
-					print 'Reprs: orig param ' + repr(origParamsDict) + ' new param ' + repr(paramsDict) + ' orig results ' + repr(origResultsDict) + ' new results ' + repr(resultsDict) + '\n'
-					raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
-			else:
-				origParamNames, origResultNames = sortingFunction(paramsDict.keys()), sortingFunction(resultsDict.keys())
-				self._resultsFiles[resultsFileName] = (origParamNames, origResultNames)
-				file.write('#')
-				writeRowOfKeys(file, origParamNames, initialShift=2)
-				writeRowOfKeys(file, origResultNames)
-				file.write('\n')
-			writeRowOfVals(file, origParamNames, paramsDict, leadingSpaces=0)
-			writeRowOfVals(file, origResultNames, resultsDict)
-			file.write('\n')
 
 	def _recordVersions(self):
 		def pathVerRecord(file, repoName, repoPath):
@@ -275,5 +193,121 @@ class Experiment(object):
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
 			pathVerRecord(verFile, 'evscripts', routes.evscriptsHome)
-			pathVerRecord(verFile, 'evs', routes.evsHome)
-			pathVerRecord(verFile, 'client', routes.clientHome)
+			for repoName in self.repos.keys():
+				pathVerRecord(verFile, repoName, self.repos[repoName])
+
+	def _spawnWorker(self):
+		cmdList = [pbsEnv.qsub,
+			'-q', self.queue,
+			'-l',  'walltime=' + self.expectedWallClockTime,
+			'-v', 'PYTHON=' + sys.executable +
+						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
+						',PARENT_SCRIPT=' + os.path.basename(sys.argv[0]) +
+						',POINT_PER_JOB=' + str(self.pointsPerJob),
+			os.path.join(routes.evscriptsHome, 'pbs.sh')]
+		self.makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
+		if not self.dryRun:
+			curJobID = subprocess.check_output(cmdList)
+			for t in xrange(3000):
+				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
+					print('Job ' + self._curJobID + ' was successfully submitted')
+					self._curJobIDs.append(curJobID)
+					return
+				sleep(0.2)
+			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within 10 minutes')
+
+	def _weedWorkers(self):
+		cmdList = [pbsEnv.qstat, '-f', '-u', pbsEnv.user]
+		if not self.dryRun:
+			qstat = subprocess.check_output(cmdList)
+			self._curJobIDs = [ jobID for jobID in self._curJobIDs if jobID in qstat ]
+		else:
+			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
+
+	def _makeWorkDir(self):
+		'''Creates a working directory named after the experiment in the current directory'''
+		if os.path.isdir(self.name):
+			print('Working directory exists, trying to back it up and create a new one...')
+			for i in xrange(10):
+				curCandidateDir = self.name + '.save' + str(i)
+				if not os.path.isdir(curCandidateDir):
+					break
+				else:
+					curCandidateDir = None
+			if curCandidateDir is None:
+				raise OSError('Too many backup directories (no less than ten). Go clean them up.')
+			else:
+				shutil.move(self.name, curCandidateDir)
+		elif os.path.exists(self.name):
+			raise OSError('Working directory path exists, but is not a directory. Go fix it.')
+		os.makedirs(self.name)
+
+       #  def executeAtEveryExperimentDir(self, function, cargs, kwargs):
+       #  	'''The function must accept a grid point parameter dictionary as its first argument'''
+       #  	for gridPoint in self.grid:
+       #  		gpDirName = shared.translators.dictionary2FilesystemName(gridPoint)
+       #  		try:
+       #  			os.chdir(gpDirName)
+       #  			args = (gridPoint,) + cargs
+       #  			function(*args, **kwargs)
+       #  			os.chdir('..')
+       #  		except OSError as err:
+       #  			print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
+
+       #  def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
+       #  	'''Function condFunc must accept a grid point parameter dictionary as its first
+       # argument and a conditions parameter dictionary as its second argument.
+       #  	'''
+       #  	def executeAtEveryConditionsDir(gridPoint, expObj, function, cargs, kwargs):
+       #  		for condPoint in expObj.experimentalConditions:
+       #  			condDirName = shared.translators.dictionary2FilesystemName(condPoint)
+       #  			try:
+       #  				os.chdir(condDirName)
+       #  				args = (gridPoint, condPoint) + cargs
+       #  				function(*args, **kwargs)
+       #  				os.chdir('..')
+       #  			except OSError as err:
+       #  				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
+       #  	condArgs = (self, condFunc, condCArgs, condKWArgs)
+       #  	self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
+
+       #  def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
+       #  	'''Appends a record to a results accumulating file. Can be exeuted from
+       # any point. File format:
+       #   # paramsKey0 ... paramsKeyN resultsKey0 ... resultsKeyM
+       #   paramsVal0 ... paramsValN resultsVal0 ... resultsValM
+       # The header comment is only added when the function is called for the
+       # first time, the result lines are only appended afterwards.
+       # If the function is called with a different set of parameter/result
+       # names than the one used in the intial call, ValueError is raised.
+       # For best results, keep the keys short (under 20 symbols).'''
+       #  	sortingFunction = sorted
+       #  	numDecimals = 13
+       #  	numReprWidth = numDecimals + 7
+       #  	def writeRowOfKeys(file, keys, initialShift=0):
+       #  		for name in keys:
+       #  			adjStr = name.ljust(numReprWidth - initialShift, ' ')
+       #  			file.write(' ' + adjStr)
+       #  			initialShift = 0
+       #  	def writeRowOfVals(file, keys, dict, leadingSpaces=1):
+       #  		for name in keys:
+       #  			valStr = ( '%.' + str(numDecimals) + 'e' ) % dict[name]
+       #  			valStr = valStr.rjust(numReprWidth, ' ')
+       #  			file.write(' '*leadingSpaces + valStr)
+       #  			leadingSpaces = 1
+       #  	with open(os.path.join(self._resultsDir, resultsFileName), 'a') as file:
+       #  		if self._resultsFiles.has_key(resultsFileName):
+       #  			origParamNames, origResultNames = self._resultsFiles[resultsFileName]
+       #  			if set(paramsDict.keys()) != set(origParamNames) or set(resultsDict.keys()) != set(origResultNames):
+       #  				print 'Reprs: orig param ' + repr(origParamsDict) + ' new param ' + repr(paramsDict) + ' orig results ' + repr(origResultsDict) + ' new results ' + repr(resultsDict) + '\n'
+       #  				raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
+       #  		else:
+       #  			origParamNames, origResultNames = sortingFunction(paramsDict.keys()), sortingFunction(resultsDict.keys())
+       #  			self._resultsFiles[resultsFileName] = (origParamNames, origResultNames)
+       #  			file.write('#')
+       #  			writeRowOfKeys(file, origParamNames, initialShift=2)
+       #  			writeRowOfKeys(file, origResultNames)
+       #  			file.write('\n')
+       #  		writeRowOfVals(file, origParamNames, paramsDict, leadingSpaces=0)
+       #  		writeRowOfVals(file, origResultNames, resultsDict)
+       #  		file.write('\n')
