@@ -33,4 +33,4 @@ queue = 'shortq'
 #maxJobs = 1
 expectedWallClockTime = '00:05:00'
 #involvedGitRepositories = {'evs': join(routes.home, 'evs')}
-dryRun = True
+#dryRun = False
