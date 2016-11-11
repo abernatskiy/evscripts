@@ -114,7 +114,7 @@ class Experiment(object):
 		if self.passes > 1 and self.pointsPerJob > 1:
 			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
 		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
-		self._assignOptionalHyperparameter('maxJobs', tal.ratioCeil(len(grid), self.pointsPerJob))
+		self._assignOptionalHyperparameter('maxJobs', tal.ratioCeil(len(self.grid), self.pointsPerJob))
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
 		self._assignOptionalHyperparameter('dryRun', False)
@@ -122,7 +122,7 @@ class Experiment(object):
 		self.dbname = 'experiment.db'
 
 	def _assignOptionalHyperparameter(self, paramName, defaultValue):
-		return defaultValue if not hasattr(self.description, paramName) else getattr(self.description, paramName)
+		setattr(self, paramName, defaultValue if not hasattr(self.description, paramName) else getattr(self.description, paramName))
 
 	# Convenience functions - use these in definitions of the abstract methods
 
@@ -146,7 +146,7 @@ class Experiment(object):
 		self.description.processResults(self)
 
 	def run(self):
-		self.prepareEnv()
+		self.prepareEnvironment()
 		# farm workers
 		jobsSubmitted = 0
 		while not gridSql.checkForCompletion(self.dbname):
@@ -177,7 +177,7 @@ class Experiment(object):
 		os.chdir('..')
 
 	def _checkFSNameUniqueness(self, iterable):
-		dirNames = map(translator.dictionary2filesystemName, iterable)
+		dirNames = map(tfs.dictionary2filesystemName, iterable)
 		if not len(dirNames) == len(set(dirNames)):
 			raise ValueError('Dirnames produces by the grid are not all unique:\n' + '\n'.join(dirNames))
 
@@ -307,3 +307,4 @@ if __name__ == '__main__':
 	cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
 	cliArgs = cliParser.parse_args()
 	e = Experiment(cliArgs.scriptPath)
+	e.run()

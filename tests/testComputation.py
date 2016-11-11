@@ -19,9 +19,8 @@ def runComputationAtPoint(worker, params):
 # auxiliary definitions
 #pointsPerJob = 1
 #passes = 1
-#queue = 'shortq'
+queue = 'shortq'
 #maxJobs = 1
-#expectedWallClockTime = '00:05:00'
+expectedWallClockTime = '00:05:00'
 #involvedGitRepositories = {'evs': join(routes.home, 'evs')}
-#dryRun = True
-
+dryRun = True
