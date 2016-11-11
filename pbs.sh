@@ -5,5 +5,5 @@
 
 cd $PBS_O_WORKDIR
 echo "This is pbs.sh running on `hostname`"
-echo "Starting a worker with command line $PYTHON ${EVSCRIPTS_HOME}/helper.py $PARENT_SCRIPT $POINT_PER_JOB"
-$PYTHON ${EVSCRIPTS_HOME}/worker.py $PARENT_SCRIPT $POINT_PER_JOB
+echo "Starting a worker with command line $PYTHON ${EVSCRIPTS_HOME}/helper.py $PARENT_SCRIPT $POINTS_PER_JOB"
+$PYTHON ${EVSCRIPTS_HOME}/worker.py $PARENT_SCRIPT $POINTS_PER_JOB

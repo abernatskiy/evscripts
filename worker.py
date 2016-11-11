@@ -5,7 +5,10 @@ import os
 from time import sleep
 from copy import copy
 import imp
-from abc import ABCMeta, abstractmethod
+
+import routes
+import gridSql
+import tools.fsutils as tfs
 
 def _getTimeString(tsecs):
 	m, s = divmod(tsecs, 60)
@@ -13,93 +16,66 @@ def _getTimeString(tsecs):
 	return '%d:%02d:%02d' % (h, m, s)
 
 class Worker(object):
-	'''Abstract base class for Worker objects which handle execution of
-     final experiment processes at cluster nodes.
+	'''Abstract base class for Worker objects which handle the execution
+     of the experiment processes at cluster nodes.
 
-     Abstract methods:
-       runGroup(self, fullConditions) - function which executes the
-         processes at exactly one set of experimental parameter values.
+     Will use the function runComputationAtPoint(worker, fullConditions)
+	   from the parent script to execute the computation at exactly one
+	   point in parametric space. The function can assume that it will be
+	   executed from within the point's directory. It must return True iff
+	   the computation was completed successfully.
 	'''
-	__metaclass__ = ABCMeta
 	def __init__(self, argv):
-		'''This class is supposed to be constructed from sys.argv
-       Arguments:
-         argv[0] - script name (ignored)
-         argv[1] - path to the evscripts directory
-         argv[2] - job ID
-         argv[3] - parent script
+		'''Should be constructed from sys.argv
+       Fields:
+         argv[0] - script name, ignored
+         argv[1] - parent script
+		     argv[2] - number of points the worker should attempt to process
+		       within its life cycle
 		'''
-		self.evscriptsHome = argv[1]
-
-		sys.path.append(self.evscriptsHome)
-		self.routes = imp.load_source('routes', os.path.join(self.evscriptsHome, 'routes.py'))
-		self.parentScript = imp.load_source('parent', os.path.join(self.evscriptsHome, argv[3]))
-		self.translators = imp.load_source('translators', os.path.join(self.evscriptsHome, 'shared', 'translators.py')) # for filesystem names ONLY
-
-		experiment = self.parentScript.initializeExperiment()
-
-		jobID = int(argv[2])
-		self.repeat, self.gridPoints, self.experimentalConditions = self._getConditions(experiment, jobID)
+		self.evscriptsHome = routes.evscriptsHome
+		self.parentScript = imp.load_source('parent', argv[1])
+		self.runComputationAtPoint = self.parentScript.runComputationAtPoint()
+		self.pointPerJob = int(argv[2])
 		self.rootDir = os.getcwd()
+		self.dbname = 'experiment.db'
 
 	def __repr__(self):
-		return( 'Helper: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
-						'        gridPoints = ' + str(self.gridPoints) + '\n' +
-						'        experimentalConditions = ' + str(self.experimentalConditions) + '\n' +
+		return( 'Worker: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
+						'        parentScript = ' + str(self.parentScript) + '\n' +
 						'        rootDir = ' + self.rootDir + '\n' +
-						'        repeat = ' + str(self.repeat) + '\n')
+						'        pointsPerJob = ' + str(self.pointsPerJob) + '\n')
 
 	def __str__(self):
 		return repr(self)
 
-	def _getConditions(self, experiment, jobID):
-		grid = experiment.grid
-		expConds = experiment.experimentalConditions
-		if grid is None:
-			return (jobID, [{}], expConds)
-		else:
-			ppj = experiment.pointsPerJob
-			gridLen = len(grid)
-			jobsPerGrid = (gridLen + ppj - 1) / ppj
-			curGridPointID = (jobID % jobsPerGrid)*ppj
-			gridPoints = []
-			for i in xrange(ppj):
-				if curGridPointID+i < gridLen:
-					gridPoints.append(grid[curGridPointID + i])
-			return (jobID/jobsPerGrid, gridPoints, expConds)
+	def makeGroupNote(self, str):
+		with open('groupNotes.txt', 'a') as f:
+			f.write(str + '\n')
 
-	def runExperiments(self):
-		for gridPoint in self.gridPoints:
-			gpDirName = self.translators.dictionary2FilesystemName(gridPoint)
-			if not os.path.isdir(gpDirName):
-				os.makedirs(gpDirName)
-			os.chdir(gpDirName)
+	def runAtAllPoints(self):
+		while pointPerJob > 0:
+			pointTriple = gridSql.requestPointFromGridQueue(self.dbname)
+			if pointTriple:
+				id, curPass, params = pointTriple
+				gpDirName = tfs.dictionary2filesystemName(params)
+				tfs.makeDirCarefully(gpDirName)
+				os.chdir(gpDirName)
 
-			for condition in self.experimentalConditions:
-				condDirName = self.translators.dictionary2FilesystemName(condition)
-				if not os.path.isdir(condDirName):
-					os.makedirs(condDirName)
-				os.chdir(condDirName)
+				self.makeGroupNote('Parameters of the run conducted here: ' + str(params))
+				elapsedTime = os.times()[4]
+				if self.runComputationAtPoint(self, params):
+					gridSql.reportSuccessOnPoint(self.dbname)
+				else:
+					gridSql.reportFailureOnPoint(self.dbname)
+				elapsedTime = os.times()[3] - elapsedTime
+				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours)')
 
-				fullCond = copy(condition)
-				fullCond.update(gridPoint)
-
-				self._makeGroupNote('Parameters of the run conducted here: ' + str(fullCond))
-				et = os.times()[4]
-
-				self.runGroup(fullCond)
-
-				et = os.times()[4] - et
-				self._makeGroupNote('Run completed in ' + str(et) + ' seconds (' + _getTimeString(et) + ' hours)')
 				os.chdir('..')
+				pointsPerJob -= 1
+			else:
+				return
 
-			os.chdir('..')
-
-	@abstractmethod
-	def runGroup(self, fcond):
-		pass
-
-	def _makeGroupNote(self, str):
-		f = open('groupNotes.txt', 'a')
-		f.write(str + '\n')
-		f.close()
+if __name__ == '__main__':
+	w = Worker(sys.argv)
+	w.runAtAllPoints()

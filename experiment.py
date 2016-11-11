@@ -170,7 +170,7 @@ class Experiment(object):
 		os.chdir('..')
 
 	def _checkFSNameUniqueness(self, iterable):
-		dirNames = map(translator.dictionary2FilesystemName, iterable)
+		dirNames = map(translator.dictionary2filesystemName, iterable)
 		if not len(dirNames) == len(set(dirNames)):
 			raise ValueError('Dirnames produces by the grid are not all unique:\n' + '\n'.join(dirNames))
 
