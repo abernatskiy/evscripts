@@ -7,8 +7,8 @@ from time import sleep
 from abc import ABCMeta, abstractmethod
 
 import routes
-import translator
 import gridSql
+import tools.fsutils as tfs
 
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
@@ -118,7 +118,7 @@ class Experiment(object):
 		'''Must be executed by any child through super.
        The child may then assume that it operates inside the working dir.
     '''
-		self._makeWorkDir()
+		tfs.makeDirCarefully(self.name)
 		self.enterWorkDir()
 		self.makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
 		self._recordVersions()
@@ -202,8 +202,8 @@ class Experiment(object):
 			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-v', 'PYTHON=' + sys.executable +
 						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
-						',PARENT_SCRIPT=' + os.path.basename(sys.argv[0]) +
-						',POINT_PER_JOB=' + str(self.pointsPerJob),
+						',PARENT_SCRIPT=' + os.path.abspath(sys.argv[0]) +
+						',POINTS_PER_JOB=' + str(self.pointsPerJob),
 			os.path.join(routes.evscriptsHome, 'pbs.sh')]
 		self.makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
@@ -223,24 +223,6 @@ class Experiment(object):
 			self._curJobIDs = [ jobID for jobID in self._curJobIDs if jobID in qstat ]
 		else:
 			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
-
-	def _makeWorkDir(self):
-		'''Creates a working directory named after the experiment in the current directory'''
-		if os.path.isdir(self.name):
-			print('Working directory exists, trying to back it up and create a new one...')
-			for i in xrange(10):
-				curCandidateDir = self.name + '.save' + str(i)
-				if not os.path.isdir(curCandidateDir):
-					break
-				else:
-					curCandidateDir = None
-			if curCandidateDir is None:
-				raise OSError('Too many backup directories (no less than ten). Go clean them up.')
-			else:
-				shutil.move(self.name, curCandidateDir)
-		elif os.path.exists(self.name):
-			raise OSError('Working directory path exists, but is not a directory. Go fix it.')
-		os.makedirs(self.name)
 
        #  def executeAtEveryExperimentDir(self, function, cargs, kwargs):
        #  	'''The function must accept a grid point parameter dictionary as its first argument'''
