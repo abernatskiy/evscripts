@@ -13,3 +13,7 @@ def sumOfDicts(a, b):
 def listsIntersect(a, b):
 	'''True iff there is at least one element in common between the two (iterable) arguments'''
 	return any(i in a for i in b)
+
+def ratioCeil(numerator, denumerator):
+	'''Returns ceiling of the ratio of numerator and denumenator'''
+	return (numerator+denumenator-1) / denumenator

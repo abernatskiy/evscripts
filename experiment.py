@@ -1,20 +1,24 @@
+#!/usr/bin/python2
+
 import os
 import sys
 import shutil
 import subprocess
 import imp
 from time import sleep
-from abc import ABCMeta, abstractmethod
 
 import routes
 import gridSql
 import tools.fsutils as tfs
+import tools.algorithms as tal
 
 sysEnv = imp.load_source('sysEnv', routes.sysEnv)
 pbsEnv = imp.load_source('pbsEnv', routes.pbsEnv)
 
 class Experiment(object):
-	'''Abstract base class for Experiment classes, which are
+	'''TODO: DESCRIPTION IS OUT OF DATE, REWRITE
+
+     Abstract base class for Experiment classes, which are
 	   supposed to help run computational experiments with
 	   multiple parameters on PBS-based supercomputers.
 
@@ -49,9 +53,8 @@ class Experiment(object):
          processResults() outside of run(),
          NOT NEEDED IN MOST CASES
 	'''
-	__metaclass__ = ABCMeta
 
-	def __init__(self, name, grid, pointsPerJob=1, passes=1, queue=None, expectedWallClockTime=None, maxJobs=None, repos={}, dryRun=False):
+	def __init__(self, descriptiveScript):
 		'''Arguments:
        name: the name of the experiment, its
          working directory and its main database
@@ -95,40 +98,31 @@ class Experiment(object):
          daughter classes.
 			 dryRun: set to true to perform a dry run.
 		'''
-		self.name = name
-		self._checkFSNameUniqueness(grid)
-		self.grid = grid
-		self.pointsPerJob = pointsPerJob
-		self.passes = passes
-		self.queue = queue if queue else pbsEnv.defaultQueue
-		self.maxJobs = maxJobs if maxJobs else (len(grid)+self.pointsPerJob-1) / self.pointsPerJob
-		self.expectedWallClockTime = expectedWallClockTime if expectedWallClockTime else pbsEnv.queueLims[self.queue]
-		if passes != 1 and pointPerJob > 1:
-			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
-		self.repos = repos
-		self.dryRun = dryRun
+		self.description = imp.load_source('desc', descriptiveScript)
+		requiredDescriptiveScriptAttributes = ['computationName', 'parametricGrid', 'prepareEnvironment', 'processResults', 'runComputationAtPoint']
+		for reqAttr in requiredDescriptiveScriptAttributes:
+			if not hasattr(self.description, reqAttr):
+				raise ValueError('Description script lacks a required attribute ' + reqAttr)
 
+		self.name = self.description.computationName
+		self._checkFSNameUniqueness(self.description.parametricGrid)
+		self.grid = self.description.parametricGrid
+
+		# Treating optional attributes of the description
+		self._assignOptionalHyperparameter('pointsPerJob', 1)
+		self._assignOptionalHyperparameter('passes', 1)
+		if self.passes > 1 and self.pointsPerJob > 1:
+			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
+		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
+		self._assignOptionalHyperparameter('maxJobs', tal.ratioCeil(len(grid), self.pointsPerJob))
+		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
+		self._assignOptionalHyperparameter('involvedGitRepositories', {})
+		self._assignOptionalHyperparameter('dryRun', False)
 		self._curJobIDs = []
 		self.dbname = 'experiment.db'
 
-	# Abstract methods: defining these defines an Experiment class
-
-	@abstractmethod
-	def prepareEnv(self):
-		'''Must be executed by any child through super.
-       The child may then assume that it operates inside the working dir.
-    '''
-		tfs.makeDirCarefully(self.name)
-		self.enterWorkDir()
-		self.makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
-		self._recordVersions()
-		self.makeNote('Apps versions recorded successfully')
-		gridSql.makeGridTable(self.grid, self.dbname)
-		gridSql.makeGridQueueTable(self.dbname, passes=self.passes)
-
-	@abstractmethod
-	def processResults(self):
-		pass
+	def _assignOptionalHyperparameter(self, paramName, defaultValue):
+		return defaultValue if not hasattr(self.description, paramName) else getattr(self.description, paramName)
 
 	# Convenience functions - use these in definitions of the abstract methods
 
@@ -136,7 +130,20 @@ class Experiment(object):
 		with open('experimentNotes.txt', 'a') as noteFile:
 			noteFile.write(line + '\n')
 
-	# self.run() - classes' main method
+	# Core methods
+
+	def prepareEnvironment(self):
+		tfs.makeDirCarefully(self.name)
+		self.enterWorkDir()
+		self.makeNote('Experiment ' + self.name + ' initiated at ' + self._dateTime())
+		self._recordVersions()
+		self.makeNote('Apps versions recorded successfully')
+		gridSql.makeGridTable(self.grid, self.dbname)
+		gridSql.makeGridQueueTable(self.dbname, passes=self.passes)
+		self.description.prepareEnvironment(self)
+
+	def processResults(self):
+		self.description.processResults(self)
 
 	def run(self):
 		self.prepareEnv()
@@ -193,7 +200,7 @@ class Experiment(object):
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
 			pathVerRecord(verFile, 'evscripts', routes.evscriptsHome)
-			for repoName in self.repos.keys():
+			for repoName in self.involvedGitRepositories.keys():
 				pathVerRecord(verFile, repoName, self.repos[repoName])
 
 	def _spawnWorker(self):
@@ -293,3 +300,10 @@ class Experiment(object):
        #  		writeRowOfVals(file, origParamNames, paramsDict, leadingSpaces=0)
        #  		writeRowOfVals(file, origResultNames, resultsDict)
        #  		file.write('\n')
+
+if __name__ == '__main__':
+	import argparse
+	cliParser = argparse.ArgumentParser(description='Run the computations for a given description script')
+	cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
+	cliArgs = cliParser.parse_args()
+	e = Experiment(cliArgs.scriptPath)
