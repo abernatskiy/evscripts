@@ -35,10 +35,10 @@ class Worker(object):
 		'''
 		self.evscriptsHome = routes.evscriptsHome
 		self.parentScript = imp.load_source('parent', argv[1])
-		self.runComputationAtPoint = self.parentScript.runComputationAtPoint()
-		self.pointPerJob = int(argv[2])
+		self.runComputationAtPoint = self.parentScript.runComputationAtPoint
+		self.pointsPerJob = int(argv[2])
 		self.rootDir = os.getcwd()
-		self.dbname = 'experiment.db'
+		self.dbname = os.path.abspath('experiment.db')
 
 	def __repr__(self):
 		return( 'Worker: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
@@ -54,7 +54,7 @@ class Worker(object):
 			f.write(str + '\n')
 
 	def runAtAllPoints(self):
-		while pointPerJob > 0:
+		while self.pointsPerJob > 0:
 			pointTriple = gridSql.requestPointFromGridQueue(self.dbname)
 			if pointTriple:
 				id, curPass, params = pointTriple
@@ -65,14 +65,15 @@ class Worker(object):
 				self.makeGroupNote('Parameters of the run conducted here: ' + str(params))
 				elapsedTime = os.times()[4]
 				if self.runComputationAtPoint(self, params):
-					gridSql.reportSuccessOnPoint(self.dbname)
+					gridSql.reportSuccessOnPoint(self.dbname, id)
 				else:
-					gridSql.reportFailureOnPoint(self.dbname)
+					gridSql.reportFailureOnPoint(self.dbname, id)
 				elapsedTime = os.times()[3] - elapsedTime
 				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours)')
 
 				os.chdir('..')
-				pointsPerJob -= 1
+
+				self.pointsPerJob -= 1
 			else:
 				return
 
