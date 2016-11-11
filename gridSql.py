@@ -48,12 +48,24 @@ def makeGridQueueTable(dbfilename, passes=1):
 		for id in ids:
 			cur.execute('INSERT INTO GridQueue VALUES ({}, {}, 0, 0, 0);'.format(id, passes))
 
+def _executeQueriesInExclusiveMode(dbfilename, executor):
+	'''Executes a callable executor(con) on a connection to the database in exclusive mode'''
+	# Courtesy of hops: http://stackoverflow.com/questions/9070369/locking-a-sqlite3-database-in-python-re-asking-for-clarification/12848059#12848059
+	con = sqlite3.connect(dbfilename)
+	con.isolation_level = 'EXCLUSIVE'
+	con.execute('BEGIN EXCLUSIVE')
+	# Exclusive access starts here. Nothing else can r/w the db, do your magic here.
+	retval = executor(con)
+	con.commit()
+	con.close()
+	return retval
+
 def requestPointFromGridQueue(dbfilename):
 	'''Finds a point that is neither worked upon nor done, marks it as worked upon
 	   and returns the parameter dictionary. If the point is not found, None is
 	   returned.
 	'''
-	with sqlite3.connect(dbfilename) as con:
+	def requester(con):
 		con.text_factory = str
 		cur = con.cursor()
 		cur.execute('SELECT id, passesDone FROM GridQueue WHERE NOT inWorks AND passesRequested > passesDone LIMIT 1;')
@@ -74,17 +86,20 @@ def requestPointFromGridQueue(dbfilename):
 		elif len(pointIdList) == 0:
 			return None
 		else:
-			raise ValueError('SELECT query with LIMIT 1 returned more than one result')
+			print('WARNING! SELECT query with LIMIT 1 returned more than one result. Something is very, very wrong.')
+	return _executeQueriesInExclusiveMode(dbfilename, requester)
 
 def reportSuccessOnPoint(dbfilename, id):
-	with sqlite3.connect(dbfilename) as con:
+	def reporter(con):
 		cur = con.cursor()
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesDone=passesDone+1 WHERE id={};'.format(id))
+	_executeQueriesInExclusiveMode(dbfilename, reporter)
 
 def reportFailureOnPoint(dbfilename, id):
-	with sqlite3.connect(dbfilename) as con:
+	def reporter(con):
 		cur = con.cursor()
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesFailed=passesFailed+1 WHERE id={};'.format(id))
+	_executeQueriesInExclusiveMode(dbfilename, reporter)
 
 def checkForCompletion(dbfilename):
 	with sqlite3.connect(dbfilename) as con:
