@@ -4,7 +4,7 @@ from os.path import expanduser
 import sys
 
 home = expanduser("~")
-file = open(home + '/evscripts/seedfiles/randints1421128240.dat', 'r')
+file = open(home + '/pbsGridWalker/seedFiles/randints1421128240.dat', 'r')
 seeds = []
 for line in file:
   seeds.append(int(line))

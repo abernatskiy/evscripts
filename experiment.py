@@ -202,7 +202,7 @@ class Experiment(object):
 									'-------------------------\n')
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
-			pathVerRecord(verFile, 'evscripts', routes.evscriptsHome)
+			pathVerRecord(verFile, 'pbsGridWalker', routes.pbsGridWalker)
 			for repoName in self.involvedGitRepositories.keys():
 				pathVerRecord(verFile, repoName, self.repos[repoName])
 
@@ -211,10 +211,10 @@ class Experiment(object):
 			'-q', self.queue,
 			'-l',  'walltime=' + self.expectedWallClockTime,
 			'-v', 'PYTHON=' + sys.executable +
-						',EVSCRIPTS_HOME=' + routes.evscriptsHome +
+						',PBSGRIDWALKER_HOME=' + routes.pbsGridWalker +
 						',PARENT_SCRIPT=' + self.descriptiveScript +
 						',POINTS_PER_JOB=' + str(self.pointsPerJob),
-			os.path.join(routes.evscriptsHome, 'pbs.sh')]
+			os.path.join(routes.pbsGridWalker, 'pbs.sh')]
 		self.makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
 		if not self.dryRun:
 			curJobID = subprocess.check_output(cmdList)

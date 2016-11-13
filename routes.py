@@ -1,7 +1,7 @@
 from os.path import expanduser, join
 
 home = expanduser('~')
-evscriptsHome = join(home, 'evscripts')
+pbsGridWalker = join(home, 'pbsGridWalker')
 
-sysEnv = join(evscriptsHome, 'environment/os', 'gentoo.py')
-pbsEnv = join(evscriptsHome, 'environment/host', 'vacc.py')
+sysEnv = join(pbsGridWalker, 'environment/os', 'gentoo.py')
+pbsEnv = join(pbsGridWalker, 'environment/host', 'vacc.py')

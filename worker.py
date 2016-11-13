@@ -33,7 +33,7 @@ class Worker(object):
 		     argv[2] - number of points the worker should attempt to process
 		       within its life cycle
 		'''
-		self.evscriptsHome = routes.evscriptsHome
+		self.pbsGridWalker = routes.pbsGridWalker
 		self.parentScript = imp.load_source('parent', argv[1])
 		self.runComputationAtPoint = self.parentScript.runComputationAtPoint
 		self.pointsPerJob = int(argv[2])
@@ -41,7 +41,7 @@ class Worker(object):
 		self.dbname = os.path.abspath('experiment.db')
 
 	def __repr__(self):
-		return( 'Worker: evscriptsHome = ' + str(self.evscriptsHome) + '\n' +
+		return( 'Worker: pbsGridWalker = ' + str(self.pbsGridWalker) + '\n' +
 						'        parentScript = ' + str(self.parentScript) + '\n' +
 						'        rootDir = ' + self.rootDir + '\n' +
 						'        pointsPerJob = ' + str(self.pointsPerJob) + '\n')
