@@ -31,3 +31,8 @@ def makeDirCarefully(dirname, maxBackups=10):
 	elif os.path.exists(dirname):
 		raise OSError('Path {} exists, but is not a directory. Go fix it.'.format(dirname))
 	os.makedirs(dirname)
+
+def makeUniqueFifo(where, basename):
+	path = os.path.join(where, basename + '_pid{}'.format(os.getpid()))
+	os.mkfifo(path)
+	return path
