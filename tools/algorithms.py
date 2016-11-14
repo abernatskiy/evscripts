@@ -10,6 +10,18 @@ def sumOfDicts(a, b):
 	outDict.update(b)
 	return outDict
 
+def classifyDict(dict, classifier):
+	'''{a:1, b:2, c:3, d:4} + {I: [a,b], II: [c]} -> {I: {a:1, b:2}, II: {c:3}}'''
+	classified = {}
+	for category, catkeys in classifier.items():
+		classified[category] = {}
+		for catkey in catkeys:
+			try:
+				classified[category][catkey] = dict[catkey]
+			except KeyError:
+				pass
+	return classified
+
 def listsIntersect(a, b):
 	'''True iff there is at least one element in common between the two (iterable) arguments'''
 	return any(i in a for i in b)
