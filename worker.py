@@ -83,15 +83,11 @@ class Worker(object):
 
 				self.makeGroupNote('Parameters of the run conducted here: ' + str(params))
 				elapsedTime = time()
-				self.makeGroupNote('time() at the beginning of the run is ' + str(time()))
-				# elapsedTime = os.times()[4]
 				if self.runComputationAtPoint(self, params):
 					gridSql.reportSuccessOnPoint(self.dbname, id)
 				else:
 					gridSql.reportFailureOnPoint(self.dbname, id)
 				elapsedTime = time() - elapsedTime
-				self.makeGroupNote('time() at the end of the run is ' + str(time()))
-				# elapsedTime = os.times()[4] - elapsedTime
 				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours) of wall clock time')
 
 				os.chdir('..')
