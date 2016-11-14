@@ -203,8 +203,8 @@ class Experiment(object):
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
 			pathVerRecord(verFile, 'pbsGridWalker', routes.pbsGridWalker)
-			for repoName in self.involvedGitRepositories.keys():
-				pathVerRecord(verFile, repoName, self.repos[repoName])
+			for repoName, repoPath in self.involvedGitRepositories.items():
+				pathVerRecord(verFile, repoName, repoPath)
 
 	def _spawnWorker(self):
 		cmdList = [pbsEnv.qsub,
