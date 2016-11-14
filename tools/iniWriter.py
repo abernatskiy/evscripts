@@ -8,6 +8,7 @@ def write(dict, classifier, outfile):
 	'''
 	classified = algorithms.classifyDict(dict, classifier)
 	parser = ConfigParser.RawConfigParser()
+	parser.optionxform = str
 	for category, contents in classified.items():
 		parser.add_section(category)
 		for key, value in contents.items():
