@@ -5,6 +5,7 @@ import os
 from time import sleep
 from copy import copy
 import imp
+import subprocess
 
 import routes
 import gridSql
@@ -48,6 +49,24 @@ class Worker(object):
 
 	def __str__(self):
 		return repr(self)
+
+	def spawnProcess(self, cmdList):
+		self.makeGroupNote('Spawning a process with command ' + subprocess.list2cmdline(cmdList) + ' at ' + os.getcwd())
+		return subprocess.Popen(cmdList)
+
+	def killProcess(self, process):
+		self.makeGroupNote('Killing some process...')
+		process.send_signal(subprocess.signal.SIGTERM)
+
+	def runProcess(self, cmdList):
+		command = subprocess.list2cmdline(cmdList)
+		self.makeGroupNote('Running command ' + command + ' at ' + os.getcwd())
+		try:
+			subprocess.check_call(cmdList)
+			return True
+		except CalledProcessError:
+			self.makeGroupNote('Command ' + command + ' failed')
+			return False
 
 	def makeGroupNote(self, str):
 		with open('groupNotes.txt', 'a') as f:
