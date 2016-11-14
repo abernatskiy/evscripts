@@ -58,7 +58,7 @@ class Worker(object):
 		self.makeGroupNote('Killing some process...')
 		process.send_signal(subprocess.signal.SIGTERM)
 
-	def runProcess(self, cmdList):
+	def runCommand(self, cmdList):
 		command = subprocess.list2cmdline(cmdList)
 		self.makeGroupNote('Running command ' + command + ' at ' + os.getcwd())
 		try:
