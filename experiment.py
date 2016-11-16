@@ -118,7 +118,7 @@ class Experiment(object):
 			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
 		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
 		self.maxJobs = tal.ratioCeil(len(self.grid), self.pointsPerJob)
-		if hasattr(self.description.maxJobs):
+		if hasattr(self.description, 'maxJobs'):
 			self.maxJobs = min(self.maxJobs, self.description.maxJobs)
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
