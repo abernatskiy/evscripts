@@ -217,11 +217,19 @@ class Experiment(object):
 						',PARENT_SCRIPT=' + self.descriptiveScript +
 						',POINTS_PER_JOB=' + str(self.pointsPerJob),
 			os.path.join(routes.pbsGridWalker, 'pbs.sh')]
-		self.makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
+		commandLine = subprocess.list2cmdline(cmdList)
+		self.makeNote('qsub command: ' + commandLine)
 		if not self.dryRun:
-			curJobID = subprocess.check_output(cmdList)
+			for t in range(60):
+				try:
+					curJobID = subprocess.check_output(cmdList)
+					break
+				except:
+					self.makeNote('Command ' + commandLine + ' failed on attempt {} of {}, retrying in 10 seconds'.format(t, 60))
+					sleep(10)
 			for t in xrange(3000):
 				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
+					self.makeNote('Job ' + curJobID + ' was successfully submitted')
 					print('Job ' + curJobID + ' was successfully submitted')
 					self._curJobIDs.append(curJobID)
 					return

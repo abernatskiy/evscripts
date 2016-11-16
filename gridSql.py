@@ -51,13 +51,19 @@ def makeGridQueueTable(dbfilename, passes=1):
 def _executeQueriesInExclusiveMode(dbfilename, executor):
 	'''Executes a callable executor(con) on a connection to the database in exclusive mode'''
 	# Courtesy of hops: http://stackoverflow.com/questions/9070369/locking-a-sqlite3-database-in-python-re-asking-for-clarification/12848059#12848059
-	con = sqlite3.connect(dbfilename)
-	con.isolation_level = 'EXCLUSIVE'
-	con.execute('BEGIN EXCLUSIVE')
-	# Exclusive access starts here. Nothing else can r/w the db, do your magic here.
-	retval = executor(con)
-	con.commit()
-	con.close()
+	for t in range(100):
+		try:
+			con = sqlite3.connect(dbfilename)
+			con.isolation_level = 'EXCLUSIVE'
+			con.execute('BEGIN EXCLUSIVE')
+			# Exclusive access starts here. Nothing else can r/w the db, do your magic here.
+			retval = executor(con)
+			con.commit()
+			con.close()
+			break
+		except OperationalError as oe:
+			print('Warning: operational error {} occured while accessing the database, retrying in 0.2 seconds (attempt {})'.format(oe.strerror, t))
+			sleep(0.2)
 	return retval
 
 def requestPointFromGridQueue(dbfilename):
