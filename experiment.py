@@ -316,7 +316,7 @@ class Experiment(object):
 
 if __name__ == '__main__':
 	import argparse
-	cliParser = argparse.ArgumentParser(description='Run the computations for a given description script')
+	cliParser = argparse.ArgumentParser(description='Run all the computations for a given description script')
 	cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
 	cliArgs = cliParser.parse_args()
 	e = Experiment(cliArgs.scriptPath)
