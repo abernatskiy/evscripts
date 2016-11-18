@@ -10,8 +10,11 @@ def sumOfDicts(a, b):
 	outDict.update(b)
 	return outDict
 
-def classifyDict(dict, classifier):
-	'''{a:1, b:2, c:3, d:4} + {I: [a,b], II: [c]} -> {I: {a:1, b:2}, II: {c:3}}'''
+def classifyDict(dict, classifier, safely=True):
+	'''{a:1, b:2, c:3, d:4} + {I: [a,b], II: [c]} -> {I: {a:1, b:2}, II: {c:3}}
+	   If safely flag is on, will throw ValueError if the first dictionary
+	   has any keys unknown to the classifier
+	'''
 	classified = {}
 	for category, catkeys in classifier.items():
 		classified[category] = {}
@@ -19,7 +22,8 @@ def classifyDict(dict, classifier):
 			try:
 				classified[category][catkey] = dict[catkey]
 			except KeyError:
-				pass
+				if safely:
+					raise ValueError('Cannot classify key {}. Check your dictionary!')
 	return classified
 
 def listsIntersect(a, b):
