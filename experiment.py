@@ -244,7 +244,7 @@ class Experiment(object):
 		else:
 			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
 
-	def executeAtEveryGridPointDir(self, function, cargs, kwargs):
+	def executeAtEveryGridPointDir(self, function, *cargs, **kwargs):
 		'''The function must accept a grid point parameter dictionary as its first argument'''
 		for gridPoint in self.grid:
 			gpDirName = tfs.dictionary2filesystemName(gridPoint)
