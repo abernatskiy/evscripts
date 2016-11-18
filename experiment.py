@@ -244,34 +244,17 @@ class Experiment(object):
 		else:
 			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
 
-       #  def executeAtEveryExperimentDir(self, function, cargs, kwargs):
-       #  	'''The function must accept a grid point parameter dictionary as its first argument'''
-       #  	for gridPoint in self.grid:
-       #  		gpDirName = shared.translators.dictionary2FilesystemName(gridPoint)
-       #  		try:
-       #  			os.chdir(gpDirName)
-       #  			args = (gridPoint,) + cargs
-       #  			function(*args, **kwargs)
-       #  			os.chdir('..')
-       #  		except OSError as err:
-       #  			print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-
-       #  def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
-       #  	'''Function condFunc must accept a grid point parameter dictionary as its first
-       # argument and a conditions parameter dictionary as its second argument.
-       #  	'''
-       #  	def executeAtEveryConditionsDir(gridPoint, expObj, function, cargs, kwargs):
-       #  		for condPoint in expObj.experimentalConditions:
-       #  			condDirName = shared.translators.dictionary2FilesystemName(condPoint)
-       #  			try:
-       #  				os.chdir(condDirName)
-       #  				args = (gridPoint, condPoint) + cargs
-       #  				function(*args, **kwargs)
-       #  				os.chdir('..')
-       #  			except OSError as err:
-       #  				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-       #  	condArgs = (self, condFunc, condCArgs, condKWArgs)
-       #  	self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
+	def executeAtEveryGridPointDir(self, function, cargs, kwargs):
+		'''The function must accept a grid point parameter dictionary as its first argument'''
+		for gridPoint in self.grid:
+			gpDirName = tfs.dictionary2filesystemName(gridPoint)
+			try:
+				os.chdir(gpDirName)
+				args = (gridPoint,) + cargs
+				function(*args, **kwargs)
+				os.chdir('..')
+			except OSError as err:
+				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 
        #  def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
        #  	'''Appends a record to a results accumulating file. Can be exeuted from
