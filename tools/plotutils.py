@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet']
                                                                                 
-def plotAverageTimeSeries(samplesDict, ylabel, outFile, strips='conf95', xlabel='Time', xlimit=None, disableStrips=False, legendLocation=4):
+def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None, strips='conf95', xlabel='Time', xlimit=None, disableStrips=False, legendLocation=4, dpi=300):
 	'''Plots averages of several random time series. The samples must represented
      as a numpy matrix (each row is a sample) and stored as values in the
 	   samplesDict dictionary. The keys of the dictionary will be used to annotate
@@ -19,8 +19,8 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, strips='conf95', xlabel=
 	'''
 	import stats
 	colorIdx = 0
-	for tsname, tssamples in samplesDict:
-		tsavg = np.mean(tssamples, axis=1)
+	for tsname, tssamples in samplesDict.items():
+		tsavg = np.mean(tssamples, axis=0)
 		tsstderr = stats.timeSeriesStderr(tssamples)
 		if strips == 'conf95':
 			tsstderr *= 1.96
@@ -39,10 +39,15 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, strips='conf95', xlabel=
 			plt.fill_between(time, lower, upper, where=upper>=lower, facecolor=colors[colorIdx], alpha=0.3, interpolate=True)
 			plt.plot(time, tsavg, color=colors[colorIdx], label=tsname)
 
-		plt.xlabel(xlabel)
-		plt.ylabel(ylabel)
-		plt.legend(loc=legendLocation)
-		if xlimit:
-			plt.xlim(0, xlimit)
-
 		colorIdx += 1
+
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+	plt.legend(loc=legendLocation)
+	if xlimit:
+		plt.xlim(0, xlimit)
+	if title:
+		plt.title(title)
+
+	plt.savefig(outFile, dpi=300)
+	plt.close()
