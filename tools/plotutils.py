@@ -1,9 +1,13 @@
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet']
                                                                                 
-def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None, strips='conf95', xlabel='Time', xlimit=None, disableStrips=False, legendLocation=4, dpi=300):
+def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None,
+	strips='conf95', xlabel='Time', xlimit=None, disableStrips=False,
+	legendLocation=4, dpi=300):
 	'''Plots averages of several random time series. The samples must represented
      as a numpy matrix (each row is a sample) and stored as values in the
 	   samplesDict dictionary. The keys of the dictionary will be used to annotate
@@ -19,6 +23,7 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None, strips='conf
 	'''
 	import stats
 	colorIdx = 0
+	limits = [np.inf, -np.inf]
 	for tsname, tssamples in samplesDict.items():
 		tsavg = np.mean(tssamples, axis=0)
 		tsstderr = stats.timeSeriesStderr(tssamples)
@@ -30,6 +35,7 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None, strips='conf
 			raise ValueError('Unsupported strip type {}. Supported types: conf95, stderr'.format(strips))
 		lower = tsavg - tsstderr
 		upper = tsavg + tsstderr
+		limits = [ min(limits[0], min(lower)), max(limits[1], max(upper)) ]
 
 		time = np.arange(0,len(tsavg))
 		if disableStrips:
@@ -48,6 +54,9 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None, strips='conf
 		plt.xlim(0, xlimit)
 	if title:
 		plt.title(title)
+	if limits[0] != limits[1]:
+		yrange = limits[1] - limits[0]
+		plt.ylim(limits[0]-0.05*yrange, limits[1]+0.05*yrange)
 
-	plt.savefig(outFile, dpi=300)
+	plt.savefig(outFile, dpi=dpi)
 	plt.close()
