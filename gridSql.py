@@ -113,3 +113,10 @@ def checkForCompletion(dbfilename):
 		cur.execute('SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
 		ids = cur.fetchall()
 	return len(ids) == 0
+
+def numFailures(dbfilename):
+	with sqlite3.connect(dbfilename) as con:
+		cur = con.cursor()
+		cur.execute('SELECT sum(passesFailed) FROM GridQueue;')
+		sum, = cur.fetchall()[0]
+	return sum

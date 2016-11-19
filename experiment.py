@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 import os
 import sys
@@ -122,6 +122,7 @@ class Experiment(object):
 			self.maxJobs = min(self.maxJobs, self.description.maxJobs)
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
+		self._assignOptionalHyperparameter('maxFailures', 10)
 		self._assignOptionalHyperparameter('dryRun', False)
 		self._curJobIDs = []
 		self.dbname = 'experiment.db'
@@ -165,6 +166,9 @@ class Experiment(object):
 					if self.dryRun:
 						break
 			if self.dryRun:
+				break
+			if gridSql.numFailures(self.dbname)>self.maxFailures:
+				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
 				break
 			sleep(pbsEnv.qstatCheckingPeriod)
 		# finishing touches
