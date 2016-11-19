@@ -76,7 +76,8 @@ def plotAllTimeSeries(samplesDict, ylabel, outFile, title=None,
 	for tsname, tssamples in samplesDict.items():
 		limits = [ min(limits[0], np.min(tssamples)), max(limits[1], np.max(tssamples)) ]
 		time = np.arange(0, tssamples.shape[1])
-		for trajIdx in range(tssamples.shape[0]):
+		plt.plot(time, tssamples[0,:], color=colors[colorIdx], alpha=alpha, label=tsname)
+		for trajIdx in range(1, tssamples.shape[0]):
 			plt.plot(time, tssamples[trajIdx,:], color=colors[colorIdx], alpha=alpha)
 
 		colorIdx += 1
