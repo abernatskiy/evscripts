@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 import argparse
 cliParser = argparse.ArgumentParser(description='Run only the data processing part of any experiment description script')
