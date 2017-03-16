@@ -61,7 +61,7 @@ def _executeQueriesInExclusiveMode(dbfilename, executor):
 			con.commit()
 			con.close()
 			break
-		except OperationalError as oe:
+		except sqlite3.OperationalError as oe:
 			print('Warning: operational error {} occured while accessing the database, retrying in 0.2 seconds (attempt {})'.format(oe.strerror, t))
 			sleep(0.2)
 	return retval
