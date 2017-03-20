@@ -34,7 +34,6 @@ def _applyMargins(axisType, limits, margins):
 	if axisType == 'lin':
 		return [limits[0]-margins, limits[1]+margins]
 	elif axisType == 'log':
-		print str(limits) + ' dfsdf ' + str([limits[0]*(1.-margins), limits[1]*(1.+margins)])
 		return [limits[0]*(1.-margins), limits[1]*(1.+margins)]
 	else:
 		raise NotImplementedError('Cannot apply margins to a {} axis'.format(axisType))
