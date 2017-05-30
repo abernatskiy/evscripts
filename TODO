@@ -1,14 +1,6 @@
-store grids at sqlite
-use sqlite to save results
-decent graphical tools
 qsub dummy
-monolitic helper
-support preprocessing in helper (e.g. client compilation(
-support postprocessing in helper
 check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does
 continue a stalled experiment
-submit jobs not at once, but as the other jobs are getting completed
-require Experiment.grid to be an actual Grid, not optionally None: the special case treatment is killing the code. Note: run grep -r "grid is None" ./
 random seed treatment
 	* include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
 make sure that the processResults code is aware when it writes anything into the old results dir
