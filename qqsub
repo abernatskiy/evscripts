@@ -7,6 +7,9 @@
 # -v environmentVars - the only working option
 # Additionally, the built-in variable ${PBS_O_WORKDIR} is provided
 
+# Test command:
+# ./qqsub -q shortq -l walltime=01:00:00 -v PYTHON=/usr/bin/python2,PBSGRIDWALKER_HOME=$HOME/morphMod/pbsGridWalker,PARENT_SCRIPT=$HOME/morphMod/twoMorphologies3.py,POINTS_PER_JOB=25 $HOME/morphMod/pbsGridWalker/pbs.sh
+
 while getopts ":q::l::v:" opt; do
 	case $opt in
 		q)
@@ -36,6 +39,7 @@ RUNFILE=/tmp/torqq
 # echo -e "Got the following params:\nQUEUE=${QUEUE}\nRESOURCES=${RESOURCES}\nENVIRONMENT=${ENVIRONMENT}\nEXECUTABLE=${EXECUTABLE}\nID=${ID}"
 
 # Executing the excutable with environment variables supplied with -v and the additional PBS_O_WORKDIR varaible
+echo ${ID} >> ${RUNFILE}
 bash -c "PBS_O_WORKDIR="`pwd`" `echo "$ENVIRONMENT" | sed -e 's/\([a-zA-Z_]\+=[^=]*\),/\1 /g'` /bin/bash ${EXECUTABLE}" > o${ID} 2>e${ID}
 
 echo $BASHPID
