@@ -3,7 +3,8 @@
 #PBS -j n
 #PBS -m a
 
-cd $PBS_O_WORKDIR
+echo cd $PBS_O_WORKDIR
 echo "This is pbs.sh running on `hostname`"
 echo "Starting a worker with command line $PYTHON ${PBSGRIDWALKER_HOME}/helper.py $PARENT_SCRIPT $POINTS_PER_JOB"
-$PYTHON ${PBSGRIDWALKER_HOME}/worker.py $PARENT_SCRIPT $POINTS_PER_JOB
+echo $PYTHON ${PBSGRIDWALKER_HOME}/worker.py $PARENT_SCRIPT $POINTS_PER_JOB
+sleep 120
