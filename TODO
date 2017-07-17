@@ -1,4 +1,3 @@
-qsub dummy
 check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does
 continue a stalled experiment
 random seed treatment
