@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/env python2
 
 import os
 import sys
@@ -117,9 +117,12 @@ class Experiment(object):
 		if self.passes > 1 and self.pointsPerJob > 1:
 			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
 		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
-		self._assignOptionalHyperparameter('maxJobs', tal.ratioCeil(len(self.grid), self.pointsPerJob))
+		self.maxJobs = tal.ratioCeil(len(self.grid), self.pointsPerJob)
+		if hasattr(self.description, 'maxJobs'):
+			self.maxJobs = min(self.maxJobs, self.description.maxJobs)
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
+		self._assignOptionalHyperparameter('maxFailures', 10)
 		self._assignOptionalHyperparameter('dryRun', False)
 		self._curJobIDs = []
 		self.dbname = 'experiment.db'
@@ -164,6 +167,9 @@ class Experiment(object):
 						break
 			if self.dryRun:
 				break
+			if gridSql.numFailures(self.dbname)>self.maxFailures:
+				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
+				break
 			sleep(pbsEnv.qstatCheckingPeriod)
 		# finishing touches
 		self.processResults()
@@ -203,8 +209,8 @@ class Experiment(object):
 			os.chdir(curDir)
 		with open('versions.txt', 'w') as verFile:
 			pathVerRecord(verFile, 'pbsGridWalker', routes.pbsGridWalker)
-			for repoName in self.involvedGitRepositories.keys():
-				pathVerRecord(verFile, repoName, self.repos[repoName])
+			for repoName, repoPath in self.involvedGitRepositories.items():
+				pathVerRecord(verFile, repoName, repoPath)
 
 	def _spawnWorker(self):
 		cmdList = [pbsEnv.qsub,
@@ -215,11 +221,19 @@ class Experiment(object):
 						',PARENT_SCRIPT=' + self.descriptiveScript +
 						',POINTS_PER_JOB=' + str(self.pointsPerJob),
 			os.path.join(routes.pbsGridWalker, 'pbs.sh')]
-		self.makeNote('qsub cmdline: ' + subprocess.list2cmdline(cmdList))
+		commandLine = subprocess.list2cmdline(cmdList)
+		self.makeNote('qsub command: ' + commandLine)
 		if not self.dryRun:
-			curJobID = subprocess.check_output(cmdList)
+			for t in range(60):
+				try:
+					curJobID = subprocess.check_output(cmdList)
+					break
+				except:
+					self.makeNote('Command ' + commandLine + ' failed on attempt {} of {}, retrying in 10 seconds'.format(t, 60))
+					sleep(10)
 			for t in xrange(3000):
 				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
+					self.makeNote('Job ' + curJobID + ' was successfully submitted')
 					print('Job ' + curJobID + ' was successfully submitted')
 					self._curJobIDs.append(curJobID)
 					return
@@ -234,34 +248,17 @@ class Experiment(object):
 		else:
 			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
 
-       #  def executeAtEveryExperimentDir(self, function, cargs, kwargs):
-       #  	'''The function must accept a grid point parameter dictionary as its first argument'''
-       #  	for gridPoint in self.grid:
-       #  		gpDirName = shared.translators.dictionary2FilesystemName(gridPoint)
-       #  		try:
-       #  			os.chdir(gpDirName)
-       #  			args = (gridPoint,) + cargs
-       #  			function(*args, **kwargs)
-       #  			os.chdir('..')
-       #  		except OSError as err:
-       #  			print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-
-       #  def executeAtEveryConditionsDir(self, condFunc, condCArgs, condKWArgs):
-       #  	'''Function condFunc must accept a grid point parameter dictionary as its first
-       # argument and a conditions parameter dictionary as its second argument.
-       #  	'''
-       #  	def executeAtEveryConditionsDir(gridPoint, expObj, function, cargs, kwargs):
-       #  		for condPoint in expObj.experimentalConditions:
-       #  			condDirName = shared.translators.dictionary2FilesystemName(condPoint)
-       #  			try:
-       #  				os.chdir(condDirName)
-       #  				args = (gridPoint, condPoint) + cargs
-       #  				function(*args, **kwargs)
-       #  				os.chdir('..')
-       #  			except OSError as err:
-       #  				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
-       #  	condArgs = (self, condFunc, condCArgs, condKWArgs)
-       #  	self.executeAtEveryExperimentDir(executeAtEveryConditionsDir, condArgs, {})
+	def executeAtEveryGridPointDir(self, function, *cargs, **kwargs):
+		'''The function must accept a grid point parameter dictionary as its first argument'''
+		for gridPoint in self.grid:
+			gpDirName = tfs.dictionary2filesystemName(gridPoint)
+			try:
+				os.chdir(gpDirName)
+				args = (gridPoint,) + cargs
+				function(*args, **kwargs)
+				os.chdir('..')
+			except OSError as err:
+				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 
        #  def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
        #  	'''Appends a record to a results accumulating file. Can be exeuted from
@@ -306,7 +303,7 @@ class Experiment(object):
 
 if __name__ == '__main__':
 	import argparse
-	cliParser = argparse.ArgumentParser(description='Run the computations for a given description script')
+	cliParser = argparse.ArgumentParser(description='Run all the computations for a given description script')
 	cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
 	cliArgs = cliParser.parse_args()
 	e = Experiment(cliArgs.scriptPath)

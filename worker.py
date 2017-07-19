@@ -2,7 +2,7 @@
 
 import sys
 import os
-from time import sleep
+from time import sleep,time
 from copy import copy
 import imp
 import subprocess
@@ -82,13 +82,13 @@ class Worker(object):
 				os.chdir(gpDirName)
 
 				self.makeGroupNote('Parameters of the run conducted here: ' + str(params))
-				elapsedTime = os.times()[4]
+				elapsedTime = time()
 				if self.runComputationAtPoint(self, params):
 					gridSql.reportSuccessOnPoint(self.dbname, id)
 				else:
 					gridSql.reportFailureOnPoint(self.dbname, id)
-				elapsedTime = os.times()[3] - elapsedTime
-				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours)')
+				elapsedTime = time() - elapsedTime
+				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours) of wall clock time')
 
 				os.chdir('..')
 
