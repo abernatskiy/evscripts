@@ -6,7 +6,7 @@ def write(dict, classifier, outfile):
 	'''Classifies parameters supplied with dict into the categories using classifier.
 	   The result is written into outfile, using the categories as sections.
 	'''
-	classified = algorithms.classifyDict(dict, classifier)
+	classified = algorithms.classifyDictWithRegexps(dict, classifier)
 	parser = ConfigParser.RawConfigParser()
 	parser.optionxform = str
 	for category, contents in classified.items():
