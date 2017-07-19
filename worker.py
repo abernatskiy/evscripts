@@ -64,7 +64,7 @@ class Worker(object):
 		try:
 			subprocess.check_call(cmdList)
 			return True
-		except CalledProcessError:
+		except subprocess.CalledProcessError:
 			self.makeGroupNote('Command ' + command + ' failed')
 			return False
 
