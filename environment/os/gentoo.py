@@ -1,7 +1,7 @@
 # sysEnv environmental file
 
 # System binaries on Gentoo.
-# In fact, not just Gentoo, many linux repos keep
+# In fact, not just Gentoo, many linux distros keep
 # these executables in the same places.
 
 # necessary
