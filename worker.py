@@ -54,8 +54,8 @@ class Worker(object):
 		self.makeGroupNote('Spawning a process with command ' + subprocess.list2cmdline(cmdList) + ' at ' + os.getcwd())
 		return subprocess.Popen(cmdList)
 
-	def killProcess(self, process):
-		self.makeGroupNote('Killing some process...')
+	def killProcess(self, process, label='unknown'):
+		self.makeGroupNote('Killing a process (pid {}, label {})'.format(process.pid, label))
 		process.send_signal(subprocess.signal.SIGTERM)
 
 	def runCommand(self, cmdList):
@@ -69,6 +69,7 @@ class Worker(object):
 			return False
 
 	def makeGroupNote(self, str):
+		print(str)
 		with open('groupNotes.txt', 'a') as f:
 			f.write(str + '\n')
 
@@ -94,7 +95,9 @@ class Worker(object):
 
 				self.pointsPerJob -= 1
 			else:
+				print('WORKER: No points left in the grid, finishing walking the grid before the allowed number of points per job has been reached.')
 				return
+		print('WORKER: Hit the allowed number of points per job, finishing walking the grid.')
 
 if __name__ == '__main__':
 	w = Worker(sys.argv)
