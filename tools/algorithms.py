@@ -3,11 +3,16 @@ def chunks(l, n):
 	for i in xrange(0, len(l), n):
 		yield l[i:i+n]
 
-def sumOfDicts(a, b):
-	'''Returns a dictionary which contais all keys and values from both input dictionaries'''
+def sumOfDicts(a, b, strict=True):
+	'''Returns a dictionary which contais all keys and values from both input dictionaries.
+     Raises a ValueError when there is a key collision
+  '''
 	outDict = {}
 	outDict.update(a)
-	outDict.update(b)
+	for keyb in b:
+		if strict and outDict.has_key(keyb):
+			raise ValueError('Key collision when computing the sum of dicts: key {} is present in both dictionaries')
+		outDict[keyb] = b[keyb]
 	return outDict
 
 def classifyDict(dict, classifier, safely=True):
