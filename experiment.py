@@ -163,13 +163,16 @@ class Experiment(object):
 				sleep(pbsEnv.qsubDelay)
 				if jobsSubmitted > self.maxJobs*self.passes:
 					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(self.maxJobs*self.passes, jobsSubmitted))
+					if jobsSubmitted-self.maxJobs*self.passes>=10:
+						self.makeNote('10 jobs submitted in addition to what was expected. Will not clog the queue any further. Exiting.')
+						sys.exit(1)
 					if self.dryRun:
 						break
 			if self.dryRun:
 				break
 			if gridSql.numFailures(self.dbname)>self.maxFailures:
 				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
-				break
+				sys.exit(1)
 			sleep(pbsEnv.qstatCheckingPeriod)
 		# finishing touches
 		self.processResults()
@@ -231,14 +234,15 @@ class Experiment(object):
 				except:
 					self.makeNote('Command ' + commandLine + ' failed on attempt {} of {}, retrying in 10 seconds'.format(t, 60))
 					sleep(10)
-			for t in xrange(3000):
+			schedulerCheckingPeriod = 0.2 # seconds
+			for t in xrange(int(pbsEnv.waitForTheScheduler/schedulerCheckingPeriod)):
 				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
 					self.makeNote('Job ' + curJobID + ' was successfully submitted')
 					print('Job ' + curJobID + ' was successfully submitted')
 					self._curJobIDs.append(curJobID)
 					return
-				sleep(0.2)
-			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within 10 minutes')
+				sleep(schedulerCheckingPeriod)
+			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
 
 	def _weedWorkers(self):
 		cmdList = [pbsEnv.qstat, '-f', '-u', pbsEnv.user]
