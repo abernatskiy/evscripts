@@ -11,7 +11,7 @@ def sumOfDicts(a, b, strict=True):
 	outDict.update(a)
 	for keyb in b:
 		if strict and outDict.has_key(keyb):
-			raise ValueError('Key collision when computing the sum of dicts: key {} is present in both dictionaries')
+			raise ValueError('Key collision when computing the sum of dicts: key {} is present in both dictionaries'.format(keyb))
 		outDict[keyb] = b[keyb]
 	return outDict
 
