@@ -82,11 +82,14 @@ class Worker(object):
 				tfs.makeDirCarefully(gpDirName)
 				os.chdir(gpDirName)
 
+				self.makeGroupNote('Processing grid point {}'.format(id))
 				self.makeGroupNote('Grid parameters of the run conducted here: ' + str(params))
 				elapsedTime = time()
 				if self.runComputationAtPoint(self, params):
+					self.makeGroupNote('Computation at grid point {} completed successfully'.format(id))
 					gridSql.reportSuccessOnPoint(self.dbname, id)
 				else:
+					self.makeGroupNote('Computation at grid point {} failed'.format(id))
 					gridSql.reportFailureOnPoint(self.dbname, id)
 				elapsedTime = time() - elapsedTime
 				self.makeGroupNote('Run completed in ' + str(elapsedTime) + ' seconds (' + _getTimeString(elapsedTime) + ' hours) of wall clock time')
