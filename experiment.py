@@ -119,7 +119,7 @@ class Experiment(object):
 		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
 		self.totalJobs = tal.ratioCeil(len(self.grid), self.pointsPerJob)
 		if hasattr(self.description, 'maxJobs'):
-			self.maxJobs = min(self.maxJobs, self.description.maxJobs)
+			self.maxJobs = min(self.totalJobs, self.description.maxJobs)
 		else:
 			self.maxJobs = self.totalJobs
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
