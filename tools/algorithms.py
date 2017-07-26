@@ -71,3 +71,23 @@ def listsIntersect(a, b):
 def ratioCeil(numerator, denomenator):
 	'''Returns ceiling of the ratio of numerator and denumenator'''
 	return (numerator+denomenator-1) / denomenator
+
+def splitIntegerRangeIntoStages(beginning, end, stages):
+	'''Returns a list of integers where the first integer is beginning,
+     the last in end and there are stages-2 approximately equally
+     spaced integers between them. Needless to say, stages must be
+     a positive integer greater or equal to 2.
+  '''
+	if stages < 2:
+		raise ValueError('Cannot split a range [{}, {}] into less than two ({}) stages'.format(beginning, end, stages))
+	out = [beginning]
+	for interstages in range(1, stages-1):
+		approxPos = float(beginning) + (float(end-beginning)/(stages-1))*float(interstages)
+		pos = int(round(approxPos))
+		if not out[-1] == pos:
+			out.append(pos)
+	if not out[-1] == end:
+		out.append(end)
+	if len(out) != stages:
+		print('Couldn\'t split the interval [{}, {}] in {} stages, had to settle for less'.format(beginning, end, stages))
+	return out
