@@ -18,7 +18,7 @@ def dictionary2filesystemName(dictionary):
 def makeDirCarefully(dirname, maxBackups=10):
 	if os.path.isdir(dirname):
 		print('Directory {} exists, backing it up and creating a new one'.format(dirname))
-		for i in xrange(10):
+		for i in xrange(maxBackups):
 			curCandidateDir = dirname + '.save' + str(i)
 			if not os.path.isdir(curCandidateDir):
 				break
