@@ -117,9 +117,11 @@ class Experiment(object):
 		if self.passes > 1 and self.pointsPerJob > 1:
 			print('WARNING: You\'re trying to run a multistage job with more than one grid point per job. It is advisable to split computation into grid points as much as possible before splitting the points themselves')
 		self._assignOptionalHyperparameter('queue', pbsEnv.defaultQueue)
-		self.maxJobs = tal.ratioCeil(len(self.grid), self.pointsPerJob)
+		self.totalJobs = tal.ratioCeil(len(self.grid), self.pointsPerJob)
 		if hasattr(self.description, 'maxJobs'):
 			self.maxJobs = min(self.maxJobs, self.description.maxJobs)
+		else:
+			self.maxJobs = self.totalJobs
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
 		self._assignOptionalHyperparameter('maxFailures', 10)
@@ -155,15 +157,16 @@ class Experiment(object):
 		self.prepareEnvironment()
 		# farm workers
 		jobsSubmitted = 0
+		jobsExpected = self.totalJobs*self.passes
 		while not gridSql.checkForCompletion(self.dbname):
 			self._weedWorkers()
 			while len(self._curJobIDs) < self.maxJobs:
 				self._spawnWorker()
 				jobsSubmitted += 1
 				sleep(pbsEnv.qsubDelay)
-				if jobsSubmitted > self.maxJobs*self.passes:
-					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(self.maxJobs*self.passes, jobsSubmitted))
-					if jobsSubmitted-self.maxJobs*self.passes>=10:
+				if jobsSubmitted > jobsExpected:
+					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(jobsExpected, jobsSubmitted))
+					if jobsSubmitted-jobsExpected >= 10:
 						self.makeNote('10 jobs submitted in addition to what was expected. Will not clog the queue any further. Exiting.')
 						sys.exit(1)
 					if self.dryRun:
