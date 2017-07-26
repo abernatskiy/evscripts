@@ -5,3 +5,7 @@ random seed treatment
 make sure that the processResults code is aware when it writes anything into the old results dir
 
 replace imp with importlib where possible (only when the decision to transition to python3.5+ is made)
+
+correct the situation where more workers are spawned than needed and as a result the exception
+RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
+is raised by experient.py
