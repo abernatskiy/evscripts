@@ -74,6 +74,7 @@ class Worker(object):
 			f.write(str + '\n')
 
 	def runAtAllPoints(self):
+		maxPoints = self.pointsPerJob
 		while self.pointsPerJob > 0:
 			pointTriple = gridSql.requestPointFromGridQueue(self.dbname)
 			if pointTriple:
@@ -98,10 +99,14 @@ class Worker(object):
 
 				self.pointsPerJob -= 1
 			else:
-				print('WORKER: No points left in the grid, finishing walking the grid before the allowed number of points per job has been reached.')
+				print('WORKER: No points left in the grid, finishing walking the grid before the allowed number of points per job ({}) has been reached.'.format(maxPoints))
+				print('WORKER: Exiting after completing the computation at {} points of the grid.'.format(maxPoints - self.pointsPerJob))
 				return
-		print('WORKER: Hit the allowed number of points per job, finishing walking the grid.')
+		print('WORKER: Hit the allowed number of points per job ({}), finishing walking the grid.'.format(maxPoints))
 
 if __name__ == '__main__':
+	workerTime = time()
 	w = Worker(sys.argv)
 	w.runAtAllPoints()
+	workerTime = time() - workerTime
+	print('WORKER: Finished in ' + str(workerTime) + ' seconds')
