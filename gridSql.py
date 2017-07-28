@@ -1,4 +1,5 @@
 import sqlite3
+from time import sleep
 
 def _sqlType(var):
 	types = {int: 'INT', float: 'FLOAT', str: 'TEXT'}
@@ -116,6 +117,7 @@ def _executeQueryPersistently(dbfilename, query):
 				return cur.fetchall()
 		except sqlite3.OperationalError as oe:
 			print('Warning: operational error occured while executing the query "{}" persistently, retrying in 0.2 seconds (attempt {})'.format(query, t))
+			sleep(0.2)
 	print('Error: couldnt execute a persistent query "{}" after 100 attempts, giving up'.format(query))
 	return None
 
