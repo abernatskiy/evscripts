@@ -267,47 +267,6 @@ class Experiment(object):
 			except OSError as err:
 				print('\033[93mWarning!\033[0m Could not enter directory \033[1m' + err.filename + '\033[0m')
 
-       #  def addResultRecord(self, resultsFileName, paramsDict, resultsDict):
-       #  	'''Appends a record to a results accumulating file. Can be exeuted from
-       # any point. File format:
-       #   # paramsKey0 ... paramsKeyN resultsKey0 ... resultsKeyM
-       #   paramsVal0 ... paramsValN resultsVal0 ... resultsValM
-       # The header comment is only added when the function is called for the
-       # first time, the result lines are only appended afterwards.
-       # If the function is called with a different set of parameter/result
-       # names than the one used in the intial call, ValueError is raised.
-       # For best results, keep the keys short (under 20 symbols).'''
-       #  	sortingFunction = sorted
-       #  	numDecimals = 13
-       #  	numReprWidth = numDecimals + 7
-       #  	def writeRowOfKeys(file, keys, initialShift=0):
-       #  		for name in keys:
-       #  			adjStr = name.ljust(numReprWidth - initialShift, ' ')
-       #  			file.write(' ' + adjStr)
-       #  			initialShift = 0
-       #  	def writeRowOfVals(file, keys, dict, leadingSpaces=1):
-       #  		for name in keys:
-       #  			valStr = ( '%.' + str(numDecimals) + 'e' ) % dict[name]
-       #  			valStr = valStr.rjust(numReprWidth, ' ')
-       #  			file.write(' '*leadingSpaces + valStr)
-       #  			leadingSpaces = 1
-       #  	with open(os.path.join(self._resultsDir, resultsFileName), 'a') as file:
-       #  		if self._resultsFiles.has_key(resultsFileName):
-       #  			origParamNames, origResultNames = self._resultsFiles[resultsFileName]
-       #  			if set(paramsDict.keys()) != set(origParamNames) or set(resultsDict.keys()) != set(origResultNames):
-       #  				print 'Reprs: orig param ' + repr(origParamsDict) + ' new param ' + repr(paramsDict) + ' orig results ' + repr(origResultsDict) + ' new results ' + repr(resultsDict) + '\n'
-       #  				raise ValueError('Error: trying to write heterogenous data into ' + resultsFileName)
-       #  		else:
-       #  			origParamNames, origResultNames = sortingFunction(paramsDict.keys()), sortingFunction(resultsDict.keys())
-       #  			self._resultsFiles[resultsFileName] = (origParamNames, origResultNames)
-       #  			file.write('#')
-       #  			writeRowOfKeys(file, origParamNames, initialShift=2)
-       #  			writeRowOfKeys(file, origResultNames)
-       #  			file.write('\n')
-       #  		writeRowOfVals(file, origParamNames, paramsDict, leadingSpaces=0)
-       #  		writeRowOfVals(file, origResultNames, resultsDict)
-       #  		file.write('\n')
-
 if __name__ == '__main__':
 	import argparse
 	cliParser = argparse.ArgumentParser(description='Run all the computations for a given description script')
