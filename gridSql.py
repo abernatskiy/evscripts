@@ -62,7 +62,7 @@ def _executeQueriesInExclusiveMode(dbfilename, executor):
 			con.close()
 			break
 		except sqlite3.OperationalError as oe:
-			print('Warning: operational error {} occured while accessing the database, retrying in 0.2 seconds (attempt {})'.format(oe.strerror, t))
+			print('Warning: operational error occured while accessing the database in exclusive mode, retrying in 0.2 seconds (attempt {})'.format(t))
 			sleep(0.2)
 	return retval
 
@@ -93,7 +93,7 @@ def requestPointFromGridQueue(dbfilename):
 			return None
 		else:
 			print('WARNING! SELECT query with LIMIT 1 returned more than one result. Something is very, very wrong.')
-	return _executeQueriesInExclusiveMode(dbfilename, requester)
+	return _executeQueryInExclusiveMode(dbfilename, requester)
 
 def reportSuccessOnPoint(dbfilename, id):
 	def reporter(con):
@@ -107,11 +107,20 @@ def reportFailureOnPoint(dbfilename, id):
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesFailed=passesFailed+1 WHERE id={};'.format(id))
 	_executeQueriesInExclusiveMode(dbfilename, reporter)
 
+def _executeQueryPersistently(dbfilename, query):
+	for t in range(100):
+		try:
+			with sqlite3.connect(dbfilename) as con:
+				cur = con.cursor()
+				cur.execute('SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
+				return cur.fetchall()
+		except sqlite3.OperationalError as oe:
+			print('Warning: operational error occured while executing the query "{}" persistently, retrying in 0.2 seconds (attempt {})'.format(query, t))
+	print('Error: couldnt execute a persistent query "{}" after 100 attempts, giving up'.format(query))
+	return None
+
 def checkForCompletion(dbfilename):
-	with sqlite3.connect(dbfilename) as con:
-		cur = con.cursor()
-		cur.execute('SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
-		ids = cur.fetchall()
+	ids = _executeQueryPersistently(dbfilename, 'SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
 	return len(ids) == 0
 
 def numFailures(dbfilename):
