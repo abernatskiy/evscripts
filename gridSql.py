@@ -99,13 +99,13 @@ def reportSuccessOnPoint(dbfilename, id):
 	def reporter(con):
 		cur = con.cursor()
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesDone=passesDone+1 WHERE id={};'.format(id))
-	_executeQueriesInExclusiveMode(dbfilename, reporter)
+	_executeQueryInExclusiveMode(dbfilename, reporter)
 
 def reportFailureOnPoint(dbfilename, id):
 	def reporter(con):
 		cur = con.cursor()
 		cur.execute('UPDATE GridQueue SET inWorks=0, passesFailed=passesFailed+1 WHERE id={};'.format(id))
-	_executeQueriesInExclusiveMode(dbfilename, reporter)
+	_executeQueryInExclusiveMode(dbfilename, reporter)
 
 def _executeQueryPersistently(dbfilename, query):
 	for t in range(100):
