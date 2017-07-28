@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -119,3 +120,90 @@ def plotAllTimeSeries(samplesDict, ylabel, outFile, title=None, xlabel='Time',
 		fig.set_size_inches(figsize[0], figsize[0])
 	fig.savefig(outFile, dpi=dpi)
 	plt.close()
+
+def plotComputationVariableAgainstParameter(experiment, variableName, variableGenerator, parameterName,
+                                    statisticsAlong=['randomSeed'], fieldNames=None, transform=lambda x: x,
+                                    title=None, margins=0.5, xscale='lin', yscale='lin', legendLocation=1,
+                                    xlimit=None, ylimit=None, xlabel=None, ylabel=None):
+	'''Allows the experimenter to plot a variable (or a vector of those)
+     (computed from the results of the computation by the function
+     variableGenerator) against one of the parameters of the grid.
+     The remaining parameters can be averaged over (those are given by
+     the statisticsAlong list of parameter names) or used as conditions,
+     such that for every set of conditions a separate plot is generated.
+  '''
+	from copy import deepcopy
+	def pDictStr(pdict):
+		return '_'.join([ '{}{}'.format(pn, pdict[pn]) for pn in sorted(pdict.keys()) ])
+	def dataFileName(gridPoint):
+		freeParamVals = deepcopy(gridPoint)
+		for rpn in statisticsAlong:
+			freeParamVals.pop(rpn, None) # second arg ensures that the function will work even if there are no statistical params in the grid point, see https://stackoverflow.com/questions/15411107
+		return '../results/' + pDictStr(freeParamVals) + '_' + variableName
+	def generateTimeSlices(gridPoint):
+		vars = variableGenerator(gridPoint)
+		with open(dataFileName(gridPoint), 'a') as file:
+			file.write(' '.join(map(str, vars)) + '\n')
+	experiment.executeAtEveryGridPointDir(generateTimeSlices)
+
+	os.chdir('results')
+
+	parameterVals = set()
+	for p in experiment.grid:
+		parameterVals.add(p[parameterName])
+	parameterVals = sorted(list(parameterVals))
+
+	# Generating a representation of condition (i.e. all the parameters that are not statistical or on the horizontal axis) as a set of hashable tuples of tuples
+	tCondPoints = set()
+	for p in experiment.grid:
+		condPoint = deepcopy(p)
+		condPoint.pop(parameterName)
+		for sp in statisticsAlong:
+			condPoint.pop(sp)
+		tCondPoints.add(tuple(sorted(condPoint.iteritems())))
+
+	# Reading the data back and making a plot at every conditions point
+	numCurves = -1
+	numCurvesKnown = False
+	for tCondPoint in tCondPoints:
+		condPoint = dict(tCondPoint)
+
+		rdata = [] if not numCurvesKnown else [ [] for i in range(numCurves) ]
+		for pv in parameterVals:
+			fullCondPoint = deepcopy(condPoint)
+			fullCondPoint[parameterName] = pv
+			fullCondData = np.loadtxt(dataFileName(fullCondPoint), ndmin=2)
+
+			if not numCurvesKnown:
+				numCurves = fullCondData.shape[1]
+				rdata = [ [] for i in range(numCurves) ]
+				if not fieldNames:
+					curveNames = [ 'field {}'.format(fn) for fn in range(numCurves) ]
+				elif len(fieldNames) == numCurves:
+					curveNames = fieldNames
+				else:
+					raise ValueError('Field names iterable has wrong length')
+				numCurvesKnown = True
+
+			for curveNum in range(numCurves):
+				rdata[curveNum].append(fullCondData[:,curveNum])
+
+			#print('param val: ' + str(pv) + '\n' + 'condPoint: ' + str(condPoint) + '\n\n\n')
+			#print('rdata: ' + str(rdata) + '\n\n\n')
+			#print('fullCondData: ' + str(fullCondData))
+			#import sys
+			#sys.exit(0)
+
+		data = { curveNames[cn]: transform(np.stack(rdata[cn]).T) for cn in range(numCurves) }
+
+		filename = '{}_vs_{}_at_{}.png'.format(variableName, parameterName, pDictStr(condPoint))
+		ylabel = ylabel if ylabel else variableName
+		xlabel = xlabel if xlabel else parameterName
+		plotAverageTimeSeries(data, ylabel, filename,
+		                      timeRange=parameterVals,
+		                      xlabel=xlabel, title=title,
+		                      legendLocation=legendLocation, margins=margins,
+		                      xlimit=xlimit, ylimit=ylimit,
+		                      xscale=xscale, yscale=yscale)
+
+	os.chdir('..')
