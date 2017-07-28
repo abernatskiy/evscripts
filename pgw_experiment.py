@@ -156,13 +156,13 @@ class Experiment(object):
 	def run(self):
 		self.prepareEnvironment()
 		# farm workers
-		jobsSubmitted = 0
+		jobsSubmitted = 0 # or attempted
 		jobsExpected = self.totalJobs*self.passes
 		while not gridSql.checkForCompletion(self.dbname):
 			self._weedWorkers()
 			while len(self._curJobIDs) < self.maxJobs:
-				if self._spawnWorker():
-					jobsSubmitted += 1
+				self._spawnWorker()
+				jobsSubmitted += 1
 				sleep(pbsEnv.qsubDelay)
 				if jobsSubmitted > jobsExpected:
 					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(jobsExpected, jobsSubmitted))
