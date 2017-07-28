@@ -7,8 +7,12 @@ import matplotlib.pyplot as plt
 colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet']
 
 def _applyCosmetics(title, xlabel, ylabel, xlimits, ylimits, legendLocation):
-	plt.xlabel(xlabel)
-	plt.ylabel(ylabel)
+	fontsize = 20
+	# plt.xlabel(xlabel) # default center alignment
+	plt.xlabel(xlabel, horizontalalignment='right', x=1.0, fontsize=fontsize) # use this to align the label to the right
+	# plt.ylabel(ylabel) # default center position and rotation
+	plt.ylabel(ylabel, horizontalalignment='right', y=1.0, rotation=0, fontsize=fontsize) # label aligned to the top and written horizontally
+
 	if not legendLocation is None:
 		plt.legend(loc=legendLocation)
 	if xlimits:
