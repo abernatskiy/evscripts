@@ -48,7 +48,7 @@ def makeGridQueueTable(dbfilename, passes=1):
 		for id in ids:
 			cur.execute('INSERT INTO GridQueue VALUES ({}, {}, 0, 0, 0);'.format(id, passes))
 
-def _executeQueriesInExclusiveMode(dbfilename, executor):
+def _executeQueryInExclusiveMode(dbfilename, executor):
 	'''Executes a callable executor(con) on a connection to the database in exclusive mode'''
 	# Courtesy of hops: http://stackoverflow.com/questions/9070369/locking-a-sqlite3-database-in-python-re-asking-for-clarification/12848059#12848059
 	for t in range(100):

@@ -161,8 +161,8 @@ class Experiment(object):
 		while not gridSql.checkForCompletion(self.dbname):
 			self._weedWorkers()
 			while len(self._curJobIDs) < self.maxJobs:
-				self._spawnWorker()
-				jobsSubmitted += 1
+				if self._spawnWorker():
+					jobsSubmitted += 1
 				sleep(pbsEnv.qsubDelay)
 				if jobsSubmitted > jobsExpected:
 					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(jobsExpected, jobsSubmitted))
@@ -243,9 +243,10 @@ class Experiment(object):
 					self.makeNote('Job ' + curJobID + ' was successfully submitted')
 					print('Job ' + curJobID + ' was successfully submitted')
 					self._curJobIDs.append(curJobID)
-					return
+					return True
 				sleep(schedulerCheckingPeriod)
-			raise RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
+			self.makeNote('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
+			return False
 
 	def _weedWorkers(self):
 		cmdList = [pbsEnv.qstat, '-f', '-u', pbsEnv.user]
