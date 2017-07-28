@@ -47,7 +47,18 @@ class Grid(object):
 		return SumOfGrids(self, other)
 
 	def __mul__(self, other):
-		return ProductOfGrids(self, other)
+		if issubclass(type(other), Grid):
+			return ProductOfGrids(self, other)
+		elif type(other) is int:
+			return ProductOfGridAndAnInteger(self, other)
+		else:
+			raise NotImplementedError
+
+	def __rmul__(self, other):
+		if type(other) is int:
+			return ProductOfGridAndAnInteger(self, other)
+		else:
+			raise NotImplementedError
 
 ##### Composite grid classes #####
 
@@ -102,6 +113,27 @@ class SumOfGrids(Grid):
 
 	def paramNames(self):
 		return self.first.paramNames() + self.second.paramNames()
+
+class ProductOfGridAndAnInteger(Grid):
+	'''A grid which repeats each element of another grid several times'''
+	def __init__(self, grid, multiplier):
+		self.baseGrid = grid
+		self.multiplier = multiplier
+
+	def __len__(self):
+		return self.multiplier*len(self.baseGrid)
+
+	def __iter__(self):
+		for point in self.baseGrid:
+			for _ in range(self.multiplier):
+				yield point
+
+	def __getitem__(self, i):
+		super(ProductOfGridAndAnInteger, self).__getitem__(i)
+		return self.baseGrid[i/self.multiplier]
+
+	def paramNames(self):
+		return self.baseGrid.paramNames()
 
 ##### Practical elementary grid classes #####
 
