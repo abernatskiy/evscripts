@@ -154,6 +154,7 @@ class Experiment(object):
 		self.description.processResults(self)
 
 	def run(self):
+		print('Progress:')
 		self.prepareEnvironment()
 		# farm workers
 		jobsSubmitted = 0 # or attempted
@@ -163,6 +164,8 @@ class Experiment(object):
 			while len(self._curJobIDs) < self.maxJobs:
 				self._spawnWorker()
 				jobsSubmitted += 1
+				sys.stdout.write('submitted job {}/{}'.format(jobsSubmitted, jobsExpected))
+				sys.stdout.flush()
 				sleep(pbsEnv.qsubDelay)
 				if jobsSubmitted > jobsExpected:
 					self.makeNote('Expected {} jobs, submitted {}: likely some workers failed'.format(jobsExpected, jobsSubmitted))
@@ -177,6 +180,7 @@ class Experiment(object):
 				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
 				sys.exit(1)
 			sleep(pbsEnv.qstatCheckingPeriod)
+		print('\nDone')
 		# finishing touches
 		self.processResults()
 		self.exitWorkDir() # entered it at prepareEnv()
@@ -241,7 +245,7 @@ class Experiment(object):
 			for t in xrange(int(pbsEnv.waitForTheScheduler/schedulerCheckingPeriod)):
 				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
 					self.makeNote('Job ' + curJobID + ' was successfully submitted')
-					print('Job ' + curJobID + ' was successfully submitted')
+					#print('Job ' + curJobID + ' was successfully submitted')
 					self._curJobIDs.append(curJobID)
 					return True
 				sleep(schedulerCheckingPeriod)
