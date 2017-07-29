@@ -164,7 +164,7 @@ class Experiment(object):
 			while len(self._curJobIDs) < self.maxJobs:
 				self._spawnWorker()
 				jobsSubmitted += 1
-				sys.stdout.write('submitted job {}/{}'.format(jobsSubmitted, jobsExpected))
+				sys.stdout.write('\rsubmitted job {}/{}'.format(jobsSubmitted, jobsExpected))
 				sys.stdout.flush()
 				sleep(pbsEnv.qsubDelay)
 				if jobsSubmitted > jobsExpected:
