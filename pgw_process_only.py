@@ -5,7 +5,7 @@ cliParser = argparse.ArgumentParser(description='Run only the data processing pa
 cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
 cliArgs = cliParser.parse_args()
 
-from experiment import Experiment
+from pgw_experiment import Experiment
 e = Experiment(cliArgs.scriptPath)
 e.enterWorkDir()
 e.processResults()
