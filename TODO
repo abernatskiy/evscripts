@@ -1,11 +1,18 @@
-check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does
-continue a stalled experiment
-random seed treatment
+Pause an experiment; continue an unfinished experiment.
+
+Random seed treatment
 	* include option for hash-based randseeds ( useful note: hash(frozenset(my_dict.items())) )
 make sure that the processResults code is aware when it writes anything into the old results dir
 
-replace imp with importlib where possible (only when the decision to transition to python3.5+ is made)
+Replace imp with importlib where possible (only when the decision to transition to python3.5+ is made)
 
-correct the situation where more workers are spawned than needed and as a result the exception
+Correct the situation where more workers are spawned than needed and as a result the exception
 RuntimeError('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
-is raised by experient.py
+is raised by experient.py (extra workers terminate before they appear in qstat)
+
+Split processResults() into gatherResultsData() and plotResults() - those two things go separately too often.
+
+Time multiplication and comparisons at tools. Also:
+
+
+Check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does
