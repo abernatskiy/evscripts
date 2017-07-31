@@ -176,6 +176,7 @@ class Experiment(object):
 						break
 			if self.dryRun:
 				break
+			nf = gridSql.numFailures(self.dbname)
 			if gridSql.numFailures(self.dbname)>self.maxFailures:
 				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
 				sys.exit(1)

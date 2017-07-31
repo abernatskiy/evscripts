@@ -113,7 +113,7 @@ def _executeQueryPersistently(dbfilename, query):
 		try:
 			with sqlite3.connect(dbfilename) as con:
 				cur = con.cursor()
-				cur.execute('SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
+				cur.execute(query)
 				return cur.fetchall()
 		except sqlite3.OperationalError as oe:
 			print('Warning: operational error occured while executing the query "{}" persistently, retrying in 0.2 seconds (attempt {})'.format(query, t))
@@ -129,6 +129,6 @@ def numFailures(dbfilename):
 	failuresQueryOutput = _executeQueryPersistently(dbfilename, 'SELECT sum(passesFailed) FROM GridQueue;')
 	if len(failuresQueryOutput) == 0:
 		return 0
-	else
+	else:
 		sum, = failuresQueryOutput[0]
 		return sum
