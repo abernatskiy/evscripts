@@ -126,5 +126,9 @@ def checkForCompletion(dbfilename):
 	return len(ids) == 0
 
 def numFailures(dbfilename):
-	sum, = _executeQueryPersistently(dbfilename, 'SELECT sum(passesFailed) FROM GridQueue;')[0]
-	return sum
+	failuresQueryOutput = _executeQueryPersistently(dbfilename, 'SELECT sum(passesFailed) FROM GridQueue;')
+	if len(failuresQueryOutput) == 0:
+		return 0
+	else
+		sum, = failuresQueryOutput[0]
+		return sum
