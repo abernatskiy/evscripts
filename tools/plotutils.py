@@ -3,6 +3,7 @@ import os
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import pickle
 
 colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet']
 
@@ -199,11 +200,14 @@ def plotComputationVariableAgainstParameter(experiment, variableName, variableGe
 			#sys.exit(0)
 
 		data = { curveNames[cn]: transform(np.stack(rdata[cn]).T) for cn in range(numCurves) }
+		pointStr = '{}_vs_{}_at_{}'.format(variableName, parameterName, pDictStr(condPoint))
 
-		filename = '{}_vs_{}_at_{}.png'.format(variableName, parameterName, pDictStr(condPoint))
+		with open(pointStr + '.p', 'w') as pfile:
+			pickle.dump(data, pfile)
+
 		ylabel = ylabel if ylabel else variableName
 		xlabel = xlabel if xlabel else parameterName
-		plotAverageTimeSeries(data, ylabel, filename,
+		plotAverageTimeSeries(data, ylabel, pointStr + '.png',
 		                      timeRange=parameterVals,
 		                      xlabel=xlabel, title=title,
 		                      legendLocation=legendLocation, margins=margins,
