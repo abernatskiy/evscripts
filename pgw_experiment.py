@@ -222,6 +222,9 @@ class Experiment(object):
 			pathVerRecord(verFile, 'pbsGridWalker', routes.pbsGridWalker)
 			for repoName, repoPath in self.involvedGitRepositories.items():
 				pathVerRecord(verFile, repoName, repoPath)
+			verFile.write('\nDescriptive script listing:\n\n')
+			with open(self.descriptiveScript, 'r') as dsFile:
+				shutil.copyfileobj(dsFile, verFile, 10240)
 
 	def _spawnWorker(self):
 		cmdList = [pbsEnv.qsub,
