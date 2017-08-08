@@ -14,5 +14,9 @@ Split processResults() into gatherResultsData() and plotResults() - those two th
 
 Time multiplication and comparisons at tools. Also:
 
-
 Check if the custom wall clock time limit is less than the queue WCT limit and throw error before PBS does
+
+Time statistics, maybe a histogram
+
+Separate "run" folder for workers' working directories - listing becomes too long. The job stdout/error
+files can be moved there upon the completion by the master script.
