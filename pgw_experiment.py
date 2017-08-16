@@ -156,7 +156,7 @@ class Experiment(object):
 		jobsExpected = self.totalJobs*self.passes
 		while not gridSql.checkForCompletion(self.dbname):
 			self._weedWorkers()
-			while len(self._curJobIDs) < self.maxJobs:
+			while not gridSql.checkForCompletion(self.dbname) and len(self._curJobIDs) < self.maxJobs:
 				self._spawnWorker()
 				jobsSubmitted += 1
 				sys.stdout.write('\rsubmitted job {}/{}'.format(jobsSubmitted, jobsExpected))
