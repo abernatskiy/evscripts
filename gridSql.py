@@ -143,7 +143,7 @@ def resetInProgressPoints(dbfilename):
 def resetFailedPoints(dbfilename):
 	with sqlite3.connect(dbfilename) as con:
 		cur = con.cursor()
-		cur.execute('UPDATE GridQueue SET passesFailed=0,passesDone=0 WHERE passesFailed=0;')
+		cur.execute('UPDATE GridQueue SET passesFailed=0,passesDone=0 WHERE passesFailed=1;')
 
 def resetDatabase(dbfilename):
 	resetInProgressPoints(dbfilename)

@@ -56,9 +56,8 @@ class Experiment(object):
 
 	def __init__(self, descriptiveScript):
 		'''Arguments:
-       name: the name of the experiment, its
-         working directory and its main database
-         (located at <name>/<name>.db).
+       name: the name of the experiment and its
+         working directory
        grid: describes the set of conditions under
          which we wish to see the computation's outcome.
          Must be iterable, indexable and yield parameter
@@ -148,13 +147,10 @@ class Experiment(object):
 		gridSql.makeGridTable(self.grid, self.dbname)
 		gridSql.makeGridQueueTable(self.dbname, passes=self.passes)
 		self.description.prepareEnvironment(self)
-
-	def processResults(self):
-		self.description.processResults(self)
+		self.exitWorkDir()
 
 	def run(self):
-		print('Progress:')
-		self.prepareEnvironment()
+		self.enterWorkDir()
 		# farm workers
 		jobsSubmitted = 0 # or attempted
 		jobsExpected = self.totalJobs*self.passes
@@ -177,9 +173,12 @@ class Experiment(object):
 				sys.exit(1)
 			sleep(pbsEnv.qstatCheckingPeriod)
 		print('\nDone')
-		# finishing touches
-		self.processResults()
-		self.exitWorkDir() # entered it at prepareEnv()
+		self.exitWorkDir()
+
+	def processResults(self):
+		self.enterWorkDir()
+		self.description.processResults(self)
+		self.exitWorkDir()
 
 	# Internals
 
@@ -273,4 +272,6 @@ if __name__ == '__main__':
 	cliParser.add_argument('scriptPath', metavar='path_to_script', type=str, help='path to the description script')
 	cliArgs = cliParser.parse_args()
 	e = Experiment(cliArgs.scriptPath)
+	e.prepareEnvironment()
 	e.run()
+	e.processResults()
