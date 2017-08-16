@@ -63,7 +63,7 @@ def _executeQueryInExclusiveMode(dbfilename, executor):
 			retval = executor(con)
 			con.commit()
 			con.close()
-			break
+			return retval
 		except sqlite3.OperationalError as oe:
 			print('Warning: operational error occured while accessing the database in exclusive mode, retrying in {} seconds (attempt {})'.format(waitBetweenQueryAttempts, t))
 			sleep(waitBetweenQueryAttempts)
