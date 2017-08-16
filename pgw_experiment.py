@@ -125,7 +125,6 @@ class Experiment(object):
 		self._assignOptionalHyperparameter('expectedWallClockTime', pbsEnv.queueLims[self.queue])
 		self._assignOptionalHyperparameter('involvedGitRepositories', {})
 		self._assignOptionalHyperparameter('maxFailures', 10)
-		self._assignOptionalHyperparameter('dryRun', False)
 		self._curJobIDs = []
 		self.dbname = 'experiment.db'
 
@@ -172,10 +171,6 @@ class Experiment(object):
 					if jobsSubmitted-jobsExpected >= 10:
 						self.makeNote('10 jobs submitted in addition to what was expected. Will not clog the queue any further. Exiting.')
 						sys.exit(1)
-					if self.dryRun:
-						break
-			if self.dryRun:
-				break
 			nf = gridSql.numFailures(self.dbname)
 			if gridSql.numFailures(self.dbname)>self.maxFailures:
 				self.makeNote('Too many falures (>{}), exiting'.format(self.maxFailures))
@@ -237,32 +232,28 @@ class Experiment(object):
 			os.path.join(routes.pbsGridWalker, 'pbs.sh')]
 		commandLine = subprocess.list2cmdline(cmdList)
 		self.makeNote('qsub command: ' + commandLine)
-		if not self.dryRun:
-			for t in range(60):
-				try:
-					curJobID = subprocess.check_output(cmdList)
-					break
-				except:
-					self.makeNote('Command ' + commandLine + ' failed on attempt {} of {}, retrying in 10 seconds'.format(t, 60))
-					sleep(10)
-			schedulerCheckingPeriod = 0.2 # seconds
-			for t in xrange(int(pbsEnv.waitForTheScheduler/schedulerCheckingPeriod)):
-				if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
-					self.makeNote('Job ' + curJobID + ' was successfully submitted')
-					#print('Job ' + curJobID + ' was successfully submitted')
-					self._curJobIDs.append(curJobID)
-					return True
-				sleep(schedulerCheckingPeriod)
-			self.makeNote('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
-			return False
+		for t in range(60):
+			try:
+				curJobID = subprocess.check_output(cmdList)
+				break
+			except:
+				self.makeNote('Command ' + commandLine + ' failed on attempt {} of {}, retrying in 10 seconds'.format(t, 60))
+				sleep(10)
+		schedulerCheckingPeriod = 0.2 # seconds
+		for t in xrange(int(pbsEnv.waitForTheScheduler/schedulerCheckingPeriod)):
+			if curJobID in subprocess.check_output([pbsEnv.qstat, '-f', '-u', pbsEnv.user]):
+				self.makeNote('Job ' + curJobID + ' was successfully submitted')
+				#print('Job ' + curJobID + ' was successfully submitted')
+				self._curJobIDs.append(curJobID)
+				return True
+			sleep(schedulerCheckingPeriod)
+		self.makeNote('Failed to submit job: qsub worked, but the job did not apper in queue within {} seconds'.format(pbsEnv.waitForTheScheduler))
+		return False
 
 	def _weedWorkers(self):
 		cmdList = [pbsEnv.qstat, '-f', '-u', pbsEnv.user]
-		if not self.dryRun:
-			qstat = subprocess.check_output(cmdList)
-			self._curJobIDs = [ jobID for jobID in self._curJobIDs if jobID in qstat ]
-		else:
-			self.makeNote('Dry run note: would execute ' + subprocess.list2cmdline(cmdList))
+		qstat = subprocess.check_output(cmdList)
+		self._curJobIDs = [ jobID for jobID in self._curJobIDs if jobID in qstat ]
 
 	def executeAtEveryGridPointDir(self, function, *cargs, **kwargs):
 		'''The function must accept a grid point parameter dictionary as its first argument'''
