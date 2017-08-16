@@ -127,6 +127,11 @@ def checkForCompletion(dbfilename):
 	ids = _executeQueryPersistently(dbfilename, 'SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
 	return len(ids) == 0
 
+def checkForUntreatedPoints(dbfilename):
+	'''A point is considered untreated if it has not reached the required number of passes and is not in works or failed'''
+	ids = _executeQueryPersistently(dbfilename, 'SELECT id FROM GridQueue WHERE passesDone<passesRequested AND NOT inWorks AND passesFailed=0;')
+	return len(ids) == 0
+
 def numFailures(dbfilename):
 	failuresQueryOutput = _executeQueryPersistently(dbfilename, 'SELECT sum(passesFailed) FROM GridQueue;')
 	if len(failuresQueryOutput) == 0:
