@@ -113,12 +113,14 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None,
 		upper = tsavg + tsstderr
 		limits = [ min(limits[0], min(lower)), max(limits[1], max(upper)) ]
 
-		if not timeRange:
+		if timeRange is None:
 			timeRange = np.arange(0,len(tsavg))
 		if disableStrips:
 			plt.errorbar(timeRange, tsavg, color=colors[colorIdx], yerr=tsstderr, label=tsname)
 		else:
 			if not strips is None:
+				print(repr(timeRange))
+				print(repr(lower))
 				plotFunc(timeRange, lower, timeRange, upper, color=colors[colorIdx], alpha=0.5)
 				plt.fill_between(timeRange, lower, upper, where=upper>=lower, facecolor=colors[colorIdx], alpha=0.3, interpolate=True)
 			plotFunc(timeRange, tsavg, color=colors[colorIdx], label=tsname)
@@ -148,7 +150,7 @@ def plotAllTimeSeries(samplesDict, ylabel, outFile, title=None, xlabel='Time',
 	plotFunc = _choosePlottingFunction(xscale, yscale)
 	for tsname, tssamples in samplesDict.items():
 		limits = [ min(limits[0], np.min(tssamples)), max(limits[1], np.max(tssamples)) ]
-		if not timeRange:
+		if timeRange is None:
 			timeRange = np.arange(0, tssamples.shape[1])
 		plotFunc(timeRange, tssamples[0,:], color=colors[colorIdx], alpha=alpha, label=tsname)
 		for trajIdx in range(1, tssamples.shape[0]):
