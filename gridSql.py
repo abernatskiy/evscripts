@@ -1,6 +1,8 @@
 import sqlite3
 from time import sleep
 
+waitBetweenQueryAttempts = 0.2
+
 def _sqlType(var):
 	types = {int: 'INT', float: 'FLOAT', str: 'TEXT'}
 	try:
@@ -61,11 +63,11 @@ def _executeQueryInExclusiveMode(dbfilename, executor):
 			retval = executor(con)
 			con.commit()
 			con.close()
-			break
+			return retval
 		except sqlite3.OperationalError as oe:
-			print('Warning: operational error occured while accessing the database in exclusive mode, retrying in 0.2 seconds (attempt {})'.format(t))
-			sleep(0.2)
-	return retval
+			print('Warning: operational error occured while accessing the database in exclusive mode, retrying in {} seconds (attempt {})'.format(waitBetweenQueryAttempts, t))
+			sleep(waitBetweenQueryAttempts)
+	return None
 
 def requestPointFromGridQueue(dbfilename):
 	'''Finds a point that is neither worked upon nor done, marks it as worked upon
@@ -116,13 +118,18 @@ def _executeQueryPersistently(dbfilename, query):
 				cur.execute(query)
 				return cur.fetchall()
 		except sqlite3.OperationalError as oe:
-			print('Warning: operational error occured while executing the query "{}" persistently, retrying in 0.2 seconds (attempt {})'.format(query, t))
-			sleep(0.2)
+			print('Warning: operational error occured while executing the query "{}" persistently, retrying in {} seconds (attempt {})'.format(query, waitBetweenQueryAttempts, t))
+			sleep(waitBetweenQueryAttempts)
 	print('Error: couldnt execute a persistent query "{}" after 100 attempts, giving up'.format(query))
 	return None
 
 def checkForCompletion(dbfilename):
 	ids = _executeQueryPersistently(dbfilename, 'SELECT id FROM GridQueue WHERE passesDone<passesRequested;')
+	return len(ids) == 0
+
+def checkForUntreatedPoints(dbfilename):
+	'''A point is considered untreated if it has not reached the required number of passes and is not in works or failed'''
+	ids = _executeQueryPersistently(dbfilename, 'SELECT id FROM GridQueue WHERE passesDone<passesRequested AND NOT inWorks AND passesFailed=0;')
 	return len(ids) == 0
 
 def numFailures(dbfilename):
@@ -132,3 +139,17 @@ def numFailures(dbfilename):
 	else:
 		sum, = failuresQueryOutput[0]
 		return sum
+
+def resetInProgressPoints(dbfilename):
+	with sqlite3.connect(dbfilename) as con:
+		cur = con.cursor()
+		cur.execute('UPDATE GridQueue SET inWorks=0,passesDone=0 WHERE inWorks=1;')
+
+def resetFailedPoints(dbfilename):
+	with sqlite3.connect(dbfilename) as con:
+		cur = con.cursor()
+		cur.execute('UPDATE GridQueue SET passesFailed=0,passesDone=0 WHERE passesFailed=1;')
+
+def resetDatabase(dbfilename):
+	resetInProgressPoints(dbfilename)
+	resetFailedPoints(dbfilename)

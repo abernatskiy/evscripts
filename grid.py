@@ -60,6 +60,9 @@ class Grid(object):
 		else:
 			raise NotImplementedError
 
+	def concatenate(self, other):
+		return ConcatenationOfGrids(self, other)
+
 ##### Composite grid classes #####
 
 class ProductOfGrids(Grid):
@@ -134,6 +137,36 @@ class ProductOfGridAndAnInteger(Grid):
 
 	def paramNames(self):
 		return self.baseGrid.paramNames()
+
+class ConcatenationOfGrids(Grid):
+	'''A concatenation of two grids with identical paramNames'''
+	def __init__(self, first, second):
+		if not set(first.paramNames()) == set(second.paramNames()):
+			raise ValueError('Parameter name sets must coincide for grid concatenation.\n'
+												'The sets were as follows: ' + str(first.paramNames()) + ', ' + str(second.paramNames()))
+		self.first = first
+		self.lenFirst = len(first)
+		self.second = second
+		self.lenSecond = len(second)
+
+	def __len__(self):
+		return self.lenFirst + self.lenSecond
+
+	def __iter__(self):
+		for point in self.first:
+			yield point
+		for point in self.second:
+			yield point
+
+	def __getitem__(self, i):
+		super(ConcatenationOfGrids, self).__getitem__(i)
+		if i<self.lenFirst:
+			return self.first[i]
+		else:
+			return self.second[i-self.lenFirst]
+
+	def paramNames(self):
+		return self.first.paramNames()
 
 ##### Practical elementary grid classes #####
 

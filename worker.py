@@ -29,7 +29,7 @@ class Worker(object):
 	def __init__(self, argv):
 		'''Should be constructed from sys.argv
        Fields:
-         argv[0] - script name, ignored
+         argv[0] - worker script name, ignored
          argv[1] - parent script
 		     argv[2] - number of points the worker should attempt to process
 		       within its life cycle
@@ -40,6 +40,7 @@ class Worker(object):
 		self.pointsPerJob = int(argv[2])
 		self.rootDir = os.getcwd()
 		self.dbname = os.path.abspath('experiment.db')
+		self.dryRun = False if not hasattr(self.parentScript, 'dryRun') else self.parentScript.dryRun
 
 	def __repr__(self):
 		return( 'Worker: pbsGridWalker = ' + str(self.pbsGridWalker) + '\n' +
@@ -51,22 +52,33 @@ class Worker(object):
 		return repr(self)
 
 	def spawnProcess(self, cmdList):
-		self.makeGroupNote('Spawning a process with command ' + subprocess.list2cmdline(cmdList) + ' at ' + os.getcwd())
-		return subprocess.Popen(cmdList)
+		if not self.dryRun:
+			self.makeGroupNote('Spawning a process with command ' + subprocess.list2cmdline(cmdList) + ' at ' + os.getcwd())
+			return subprocess.Popen(cmdList)
+		else:
+			self.makeGroupNote('Doing a dry run. Would spawn a process with command ' + subprocess.list2cmdline(cmdList) + ' at ' + os.getcwd())
+			return None
 
 	def killProcess(self, process, label='unknown'):
-		self.makeGroupNote('Killing a process (pid {}, label {})'.format(process.pid, label))
-		process.send_signal(subprocess.signal.SIGTERM)
+		if not self.dryRun:
+			self.makeGroupNote('Killing a process (pid {}, label {})'.format(process.pid, label))
+			process.send_signal(subprocess.signal.SIGTERM)
+		else:
+			self.makeGroupNote('Doing a dry run. Would kill a process')
 
 	def runCommand(self, cmdList):
 		command = subprocess.list2cmdline(cmdList)
-		self.makeGroupNote('Running command ' + command + ' at ' + os.getcwd())
-		try:
-			subprocess.check_call(cmdList)
+		if not self.dryRun:
+			self.makeGroupNote('Running command ' + command + ' at ' + os.getcwd())
+			try:
+				subprocess.check_call(cmdList)
+				return True
+			except subprocess.CalledProcessError:
+				self.makeGroupNote('Command ' + command + ' failed')
+				return False
+		else:
+			self.makeGroupNote('Doing a dry run. Would run command ' + command + ' at ' + os.getcwd())
 			return True
-		except subprocess.CalledProcessError:
-			self.makeGroupNote('Command ' + command + ' failed')
-			return False
 
 	def makeGroupNote(self, str):
 		print(str)
