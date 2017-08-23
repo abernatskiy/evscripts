@@ -14,6 +14,9 @@ def _applyCosmetics(title, xlabel, ylabel, xlimits, ylimits, legendLocation, fig
 	# plt.ylabel(ylabel) # default center position and rotation
 	plt.ylabel(ylabel, horizontalalignment='right', y=1.0, rotation=0, fontsize=fontsize) # label aligned to the top and written horizontally
 
+	ax = plt.gca()
+	ax.yaxis.set_label_coords(0.05, 1.)
+
 	if not legendLocation is None:
 		plt.legend(loc=legendLocation)
 	if xlimits:
