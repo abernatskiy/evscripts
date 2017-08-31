@@ -86,7 +86,7 @@ def _applyMargins(axisType, limits, margins):
 def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None,
 	strips='conf95', xlabel='Time', xlimit=None, ylimit=None,
 	disableStrips=False, legendLocation=4, dpi=300, figsize=None,
-	xscale='lin', yscale='lin', margins=0.1, timeRange=None, figureDims=None, forcedXLabelPos=None, forcedYLabelPos=None):
+	xscale='lin', yscale='lin', margins=0.1, timeRange=None, figureDims=None, forcedXLabelPos=None, forcedYLabelPos=None, marker=None):
 	'''Plots averages of several random time series. The samples must represented
      as a numpy matrix (each row is a sample) and stored as values in the
 	   samplesDict dictionary. The keys of the dictionary will be used to annotate
@@ -104,7 +104,8 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None,
 	colorIdx = 0
 	limits = [np.inf, -np.inf]
 	plotFunc = _choosePlottingFunction(xscale, yscale)
-	for tsname, tssamples in samplesDict.items():
+	for tsname in sorted(samplesDict.keys()):
+		tssamples = samplesDict[tsname]
 		tsavg = np.mean(tssamples, axis=0)
 		tsstderr = stats.timeSeriesStderr(tssamples)
 		if strips == 'conf95':
@@ -127,7 +128,7 @@ def plotAverageTimeSeries(samplesDict, ylabel, outFile, title=None,
 			if not strips is None:
 				plotFunc(timeRange, lower, timeRange, upper, color=colors[colorIdx], alpha=0.5)
 				plt.fill_between(timeRange, lower, upper, where=upper>=lower, facecolor=colors[colorIdx], alpha=0.3, interpolate=True)
-			plotFunc(timeRange, tsavg, color=colors[colorIdx], label=tsname)
+			plotFunc(timeRange, tsavg, color=colors[colorIdx], label=tsname, marker=marker)
 
 		colorIdx += 1
 	limits = _applyMargins(yscale, limits, margins)
@@ -171,7 +172,7 @@ def plotAllTimeSeries(samplesDict, ylabel, outFile, title=None, xlabel='Time',
 def plotComputationVariableAgainstParameter(experiment, variableName, variableGenerator, parameterName,
                                     statisticsAlong=['randomSeed'], fieldNames=None, transform=lambda x: x,
                                     title=None, margins=0.5, xscale='lin', yscale='lin', legendLocation=1,
-                                    xlimit=None, ylimit=None, xlabel=None, ylabel=None, figureDims=None, strips='conf95', forcedXLabelPos=None, forcedYLabelPos=None):
+                                    xlimit=None, ylimit=None, xlabel=None, ylabel=None, figureDims=None, strips='conf95', forcedXLabelPos=None, forcedYLabelPos=None, marker=None):
 	'''Allows the experimenter to plot a variable (or a vector of those)
      (computed from the results of the computation by the function
      variableGenerator) against one of the parameters of the grid.
@@ -254,6 +255,6 @@ def plotComputationVariableAgainstParameter(experiment, variableName, variableGe
 		                      xlabel=xlabel, title=title,
 		                      legendLocation=legendLocation, margins=margins,
 		                      xlimit=xlimit, ylimit=ylimit,
-		                      xscale=xscale, yscale=yscale, figureDims=figureDims, strips=strips, forcedXLabelPos=forcedXLabelPos, forcedYLabelPos=forcedYLabelPos)
+		                      xscale=xscale, yscale=yscale, figureDims=figureDims, strips=strips, forcedXLabelPos=forcedXLabelPos, forcedYLabelPos=forcedYLabelPos, marker=marker)
 
 	os.chdir('..')
