@@ -8,11 +8,13 @@ import pickle
 colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet', 'lime', 'peru', 'maroon', 'sienna', 'indianred']
 
 def _applyCosmetics(title, xlabel, ylabel, xlimits, ylimits, legendLocation, figureDims=None, forcedXLabelPos=None, forcedYLabelPos=None):
-	fontsize = 20
+#	fontsize = 20
 	# plt.xlabel(xlabel) # default center alignment
-	plt.xlabel(xlabel, horizontalalignment='right', x=1.0, fontsize=fontsize) # use this to align the label to the right
+#	plt.xlabel(xlabel, horizontalalignment='right', x=1.0, fontsize=fontsize) # use this to align the label to the right
 	# plt.ylabel(ylabel) # default center position and rotation
-	plt.ylabel(ylabel, horizontalalignment='right', y=1.0, rotation=0, fontsize=fontsize) # label aligned to the top and written horizontally
+#	plt.ylabel(ylabel, horizontalalignment='right', y=1.0, rotation=0, fontsize=fontsize) # label aligned to the top and written horizontally
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
 
 	ax = plt.gca()
 	if not forcedXLabelPos is None:
