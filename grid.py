@@ -213,16 +213,16 @@ class TrivialGrid(Grid1d):
 
 class Grid1dFromFile(Grid1d):
 	'''Ordered set of points in 1d space with values read from a file'''
-	def __init__(self, paramName, valuesFileName, size=None, applyFunction=None):
+	def __init__(self, paramName, valuesFileName, startAt=0, size=None, applyFunction=None):
 		with open(valuesFileName, 'r') as valuesFile:
 			valuesStr = valuesFile.read()
 		vstrs = valuesStr.split()
 		if size:
-			if len(vstrs) < size:
+			if len(vstrs) < size + startAt:
 				raise ValueError('Grid in the file is too small: ' +
-													str(size) + 'values requested, ' +
+													str(size + startAt) + 'values requested, ' +
 													str(len(vstrs)) + ' available at ' + valuesFileName)
-			vstrs = vstrs[:size]
+			vstrs = vstrs[startAt:size+startAt]
 		if applyFunction:
 			vstrs = map(applyFunction, vstrs)
 		super(Grid1dFromFile, self).__init__(paramName, vstrs)
