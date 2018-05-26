@@ -6,6 +6,7 @@ from time import sleep,time
 from copy import copy
 import imp
 import subprocess
+from socket import gethostname
 
 import routes
 import gridSql
@@ -95,7 +96,7 @@ class Worker(object):
 				tfs.makeDirCarefully(gpDirName)
 				os.chdir(gpDirName)
 
-				self.makeGroupNote('Processing grid point {}'.format(id))
+				self.makeGroupNote('Processing grid point {} at {}'.format(id, gethostname()))
 				self.makeGroupNote('Grid parameters of the run conducted here: ' + str(params))
 				elapsedTime = time()
 				if self.runComputationAtPoint(self, params):
