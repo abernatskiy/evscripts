@@ -1,4 +1,4 @@
-#PBS -l nodes=1:ppn=8
+#PBS -l nodes=1:ppn=12
 #PBS -N experimentJob
 #PBS -j n
 #PBS -m a
