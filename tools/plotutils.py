@@ -5,7 +5,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pickle
 
-colors = ['red', 'blue', 'yellow', 'green', 'cyan', 'violet', 'lime', 'peru', 'maroon', 'sienna', 'indianred']
+colors = ['red', 'blue', 'green', 'cyan', 'violet', 'lime', 'peru', 'maroon', 'sienna', 'indianred', 'yellow']
 
 def _applyCosmetics(title, xlabel, ylabel, xlimits, ylimits, legendLocation, figureDims=None, forcedXLabelPos=None, forcedYLabelPos=None):
 #	fontsize = 20
