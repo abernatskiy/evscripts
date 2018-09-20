@@ -90,7 +90,7 @@ class ProductOfGrids(Grid):
 
 	def __getitem__(self, i):
 		super(ProductOfGrids, self).__getitem__(i)
-		firstPoint = self.first[i / len(self.second)]
+		firstPoint = self.first[i // len(self.second)]
 		secondPoint = self.second[i % len(self.second)]
 		return sumOfDicts(firstPoint, secondPoint)
 
@@ -139,7 +139,7 @@ class ProductOfGridAndAnInteger(Grid):
 
 	def __getitem__(self, i):
 		super(ProductOfGridAndAnInteger, self).__getitem__(i)
-		return self.baseGrid[i/self.multiplier]
+		return self.baseGrid[i//self.multiplier]
 
 	def paramNames(self):
 		return self.baseGrid.paramNames()
