@@ -226,7 +226,7 @@ class Grid1dFromFile(Grid1d):
 		if size:
 			if len(vstrs) < size + startAt:
 				raise ValueError('Grid in the file is too small: ' +
-													str(size + startAt) + 'values requested, ' +
+													str(size + startAt) + ' values requested, ' +
 													str(len(vstrs)) + ' available at ' + valuesFileName)
 			vstrs = vstrs[startAt:size+startAt]
 		if applyFunction:
